@@ -776,7 +776,9 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
                     onExecute: () => {
                         const healAmount = resolveHeal(def, player);
                         if (healAmount > 0) {
-                            player.skillSystem.applyHitpointsHeal(healAmount);
+                            // Anglerfish can overheal; all other food caps at max HP
+                            const allowOverheal = def.healResolver === computeAnglerfishHeal;
+                            player.skillSystem.applyHitpointsHeal(healAmount, allowOverheal);
                         }
                         if (def.nextItemId !== undefined) {
                             setInventorySlot(player, slot, def.nextItemId, 1);

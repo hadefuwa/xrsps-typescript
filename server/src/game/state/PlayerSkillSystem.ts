@@ -336,13 +336,17 @@ export class PlayerSkillSystem {
         return { current: this.status.hitpointsCurrent, max: this.getHitpointsMax() };
     }
 
-    applyHitpointsHeal(amount: number): { current: number; max: number } {
+    applyHitpointsHeal(amount: number, allowOverheal = false): { current: number; max: number } {
         if (!(amount > 0)) return { current: this.status.hitpointsCurrent, max: this.getHitpointsMax() };
+        const max = this.getHitpointsMax();
         const target = Math.max(0, Math.floor(this.status.hitpointsCurrent + amount));
-        if (target > this.getHitpointsMax()) {
-            this.ensureHitpointsTempMax(target);
+        if (target > max) {
+            if (allowOverheal) {
+                this.ensureHitpointsTempMax(target);
+            }
+            // Without allowOverheal, clamp to max (standard food behaviour)
         }
-        this.setHitpointsCurrent(target);
+        this.setHitpointsCurrent(Math.min(target, this.getHitpointsMax()));
         return { current: this.status.hitpointsCurrent, max: this.getHitpointsMax() };
     }
 

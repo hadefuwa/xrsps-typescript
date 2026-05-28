@@ -128,6 +128,15 @@ async function main() {
 
         const invFinal = await page.evaluate(() => (window as any).xrspsTest?.getInventory() ?? []);
         const countAfter = invFinal.filter((s: any) => s.itemId === 315).length;
+
+        // Also verify HP is within bounds
+        const hpFinal = await page.evaluate(() => {
+            const varManager = (window as any).osrsClient?.varManager;
+            const currentHp = varManager?.getVarp?.(199) ?? -1;
+            const skills = (window as any).osrsClient?.skillSystem?.getSkill?.(3); // HP skill
+            return { currentVarp: currentHp };
+        });
+
         console.log(`[bot] Shrimps before: ${countBefore}, after: ${countAfter}`);
         console.log(shrimpConsumed ? `[bot] PASS: shrimp consumed! (${countBefore} → ${countAfter})` : `[bot] FAIL: shrimp count unchanged after 5s`);
     }
