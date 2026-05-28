@@ -97,17 +97,22 @@ export const DebugControls = memo(
                     return;
                 }
 
+                const inGame = osrsClient.isLoggedIn();
                 switch (e.key) {
                     case "F1":
+                        if (inGame) break;
                         setHideUi((v) => !v);
                         break;
                     case "F2":
+                        if (inGame) break;
                         setCameraRunning((v) => !v);
                         break;
                     case "F3":
+                        if (inGame) break;
                         addPoint();
                         break;
                     case "F4":
+                        if (inGame) break;
                         removeLastPoint();
                         break;
                 }
