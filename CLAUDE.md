@@ -94,3 +94,53 @@ The webpack dev server (`craco.config.js`) proxies WebSocket connections at path
 - Map regions use XTEA-encrypted keys stored in `caches/{name}/keys.json`.
 - Varbits and varps are synced to clients via `VariableService`; constants are in `src/shared/vars.ts`.
 - `VARBIT_LEAGUE_TUTORIAL_COMPLETED` controls tutorial progression; `accountStage === 2` means tutorial finished.
+
+## Feature coverage
+
+This project was built top-down for **Leagues V** gameplay, not as a complete OSRS reimplementation. The engine infrastructure is solid; missing features are almost always a content registration gap (nothing added to `ScriptRegistry` for that system), not an engine limitation.
+
+### What works
+
+| Category | Status | Notes |
+|---|---|---|
+| Gathering skills | Full | Fishing, mining, woodcutting, firemaking all registered |
+| Production skills | Full | Smithing, cooking, fletching, herblore, crafting, tanning |
+| Consumables | Full | 70+ food/potion items with correct heal/boost/restore effects |
+| Thieving | Full | Pickpocket (100+ NPC loot tables) and picklock |
+| Banking | Full | Deposit, withdraw, collection box |
+| Shops | Full | Buy/sell, restocking via varps |
+| Doors & traversal | Full | 500+ intermap links, door open/close, ladders, stairs |
+| Combat mechanics | Solid | Damage rolls, XP, prayer, poison, special attacks (limited) |
+| Prayer | Solid | Bone burial, altar worship, restore items |
+| Leagues V systems | Full | Tutorial, tasks, masteries, relics, XP/drop multipliers |
+
+### What is missing or stubbed
+
+| System | Status | Notes |
+|---|---|---|
+| Quests | None | Widget UI exists; zero quest logic registered |
+| Agility | None | No course registrations; no run-energy penalty code |
+| Runecrafting | None | No altar interactions |
+| Slayer | None | No task system, no masters |
+| Hunter | None | No trap placement/checking |
+| Farming | None | No patch interactions |
+| Construction | None | No PoH building |
+| Boss scripts | ~0% | One placeholder file (`BossCombatScript.ts`); no real bosses |
+| NPC dialogue | ~1% | Only Romeo (5037) and shop NPCs scripted; all others say "not implemented" |
+| Grand Exchange | None | No offer system |
+| Player trading | None | No trade request/confirmation flow |
+| PvP combat | None | Returns `pvp_not_supported` error |
+| NPC stat drains | Partial | Siphon/drain effects tracked but not applied to NPCs |
+
+### How to add missing content
+
+Every feature requires a handler registered in `server/gamemodes/{id}/index.ts` (or a shared file it imports). The pattern is always:
+
+```ts
+registry.registerNpcAction(NPC_ID, 'talk-to', handler)
+registry.registerLocAction(LOC_ID, 'mine', handler)
+registry.registerItemAction(ITEM_ID, 'eat', handler)
+registry.registerSkillAction('skill.agility', handler)
+```
+
+Service interfaces for each skill type live in `server/src/game/scripts/serviceInterfaces.ts`. The engine will call registered handlers; if nothing is registered the interaction silently falls through to the generic fallback.
