@@ -3,29 +3,40 @@ layout: home
 hero:
     name: XRSPS
     text: OSRS in the Browser
-    tagline: Build gamemodes. Write extrascripts. Run your own server.
+    tagline: A TypeScript OSRS engine — browser client, Node.js server, no Java required.
     image:
         src: /xrsps.png
         alt: XRSPS
     actions:
         - theme: brand
-          text: Get Started
-          link: /setup
+          text: I want to play
+          link: /players/getting-started
+        - theme: brand
+          text: I want to develop
+          link: /dev/code-layers
         - theme: alt
           text: Discord
           link: https://discord.gg/3dzttF2q73
 
 features:
-    - icon: 🧩
-      title: Gamemode System
-      details: Extend VanillaGamemode to build your own server experience — custom XP rates, drop tables, tutorials, UI, and progression. Override what you need, inherit what you don't.
-    - icon: 🔌
-      title: Extrascripts
-      details: Drop-in content modules that work on any server. Debug tools, admin commands, custom content — just export a register function and it loads automatically.
-    - icon: 🛠️
-      title: TypeScript End to End
-      details: Client and server both written in TypeScript. Shared cache, shared types, shared networking protocol.
     - icon: 🎮
-      title: Browser-Native Client
-      details: Full OSRS client running in the browser with WebGL rendering. No downloads, no Java — connect and play.
+      title: Players
+      details: Connect from any browser — no downloads, no Java. See what's working, how to connect over LAN or Tailscale, and what to expect.
+      link: /players/getting-started
+      linkText: Player guide
+    - icon: 🛠️
+      title: Developers
+      details: Full TypeScript stack. Understand the code layers, add NPC dialogue, fix bugs, build gamemodes. Start with the code layers guide.
+      link: /dev/code-layers
+      linkText: Developer guide
+    - icon: 🐛
+      title: Known Bugs
+      details: Confirmed bugs with root causes and fixes. Interface close fixed. Eating food suspected case-mismatch. Check before spending hours investigating.
+      link: /dev/known-bugs
+      linkText: View known bugs
+    - icon: 📋
+      title: GitHub Issues
+      details: Tracked bugs and feature requests. Open an issue when you find something new.
+      link: https://github.com/hadefuwa/xrsps-typescript/issues
+      linkText: View issues
 ---
