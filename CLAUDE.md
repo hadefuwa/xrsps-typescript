@@ -17,6 +17,9 @@ yarn server:build-collision          # Precompute collision cache (~5 min)
 yarn server:start                    # Terminal 1: game server on ws://0.0.0.0:43594
 yarn start                           # Terminal 2: React client on http://localhost:3000
 
+# Test
+yarn test:game                       # Run all server-side game logic tests (no live server needed)
+
 # Build
 yarn build                           # Production client build
 yarn server:build                    # Compile server TypeScript
