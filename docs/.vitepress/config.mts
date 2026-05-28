@@ -20,6 +20,7 @@ export default defineConfig({
                     { text: 'Getting Started', link: '/players/getting-started' },
                     { text: 'What Works', link: '/players/what-works' },
                     { text: 'Connecting (LAN / Tailscale)', link: '/players/connecting' },
+                    { text: 'Plugins & Sidebar', link: '/players/plugins' },
                 ],
             },
             {
@@ -29,6 +30,7 @@ export default defineConfig({
                     { text: 'Architecture', link: '/ARCHITECTURE' },
                     { text: 'Code Layers', link: '/dev/code-layers' },
                     { text: 'Adding Content', link: '/dev/adding-content' },
+                    { text: 'Dev Tools (F1)', link: '/dev/dev-tools' },
                     { text: 'Known Bugs', link: '/dev/known-bugs' },
                     { text: 'Gamemodes', link: '/gamemodes' },
                     { text: 'Extrascripts', link: '/extrascripts' },
@@ -44,6 +46,7 @@ export default defineConfig({
                         { text: 'Getting Started', link: '/players/getting-started' },
                         { text: 'What Works', link: '/players/what-works' },
                         { text: 'Connecting (LAN / Tailscale)', link: '/players/connecting' },
+                        { text: 'Plugins & Sidebar', link: '/players/plugins' },
                     ],
                 },
             ],
@@ -53,6 +56,7 @@ export default defineConfig({
                     items: [
                         { text: 'Code Layers', link: '/dev/code-layers' },
                         { text: 'Adding Content', link: '/dev/adding-content' },
+                        { text: 'Dev Tools (F1)', link: '/dev/dev-tools' },
                         { text: 'Known Bugs', link: '/dev/known-bugs' },
                     ],
                 },
