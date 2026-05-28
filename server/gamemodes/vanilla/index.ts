@@ -32,12 +32,13 @@ import { createWeaponDataProvider } from "./data/weapons";
 import { createSpellDataProvider } from "./data/spells";
 import { createRuneDataProvider } from "./data/runes";
 import { createProjectileParamsProvider } from "./data/projectileParams";
-import { DEFAULT_LOGIN_VARBITS } from "./data/loginVarbits";
+import { DEFAULT_LOGIN_VARBITS, PLAYER_PREFERENCE_VARBITS } from "./data/loginVarbits";
 import { DEFAULT_LOGIN_VARPS } from "./data/loginVarps";
 import { NPC_LOOT_CONFIGS } from "./data/lootDistribution";
 import { handleSailingPlayerRestore } from "./skills/sailing";
 import { register as registerSkillHandlers } from "./skills";
 import { registerClimbingHandlers } from "./scripts/content/climbing";
+import { registerBarrierHandlers } from "./scripts/content/barriers";
 import { registerDoorHandlers } from "./scripts/content/doors";
 import { registerDefaultTalkHandlers } from "./scripts/content/defaultTalk";
 import { registerPohPoolHandlers } from "./scripts/content/pohPools";
@@ -79,6 +80,10 @@ export class VanillaGamemode extends BaseGamemode {
 
     getLoginVarbits(_player: PlayerState): Array<[number, number]> {
         return DEFAULT_LOGIN_VARBITS;
+    }
+
+    getPlayerPreferenceVarbits(): Set<number> {
+        return PLAYER_PREFERENCE_VARBITS;
     }
 
     getLoginVarps(_player: PlayerState): Array<[number, number]> {
@@ -186,6 +191,7 @@ export class VanillaGamemode extends BaseGamemode {
 
         // Content
         registerClimbingHandlers(registry, services);
+        registerBarrierHandlers(registry, services);
         registerDoorHandlers(registry, services);
         registerDefaultTalkHandlers(registry, services);
         registerPohPoolHandlers(registry, services);
