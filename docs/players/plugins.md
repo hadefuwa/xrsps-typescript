@@ -47,7 +47,5 @@ A persistent notepad stored in your browser. Write anything — task lists, coor
 
 | Key | Action |
 |---|---|
-| **F1** | Toggle sidebar + dev panel visibility |
-| **F2** | Start/stop camera path playback (dev tool) |
-| **F3** | Add camera waypoint (dev tool) |
-| **F4** | Remove last camera waypoint (dev tool) |
+| **F1** | Toggle sidebar + dev panel (login screen only) |
+| **F1–F12** | Switch sidebar tabs in-game (OSRS standard) |

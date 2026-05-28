@@ -239,8 +239,8 @@ export abstract class GameRenderer<T extends MapSquare = MapSquare> extends Rend
             }
         }
 
-        // Toggle hover devoverlay with F3
-        if (inputManager.isKeyDownEvent("F3")) {
+        // Toggle hover devoverlay with F3 — only when not logged in
+        if (!this.osrsClient.isLoggedIn() && inputManager.isKeyDownEvent("F3")) {
             this.osrsClient.hoverOverlayEnabled = !this.osrsClient.hoverOverlayEnabled;
         }
     }

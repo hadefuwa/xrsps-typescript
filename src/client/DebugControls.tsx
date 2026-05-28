@@ -97,24 +97,10 @@ export const DebugControls = memo(
                     return;
                 }
 
-                const inGame = osrsClient.isLoggedIn();
-                switch (e.key) {
-                    case "F1":
-                        if (inGame) break;
-                        setHideUi((v) => !v);
-                        break;
-                    case "F2":
-                        if (inGame) break;
-                        setCameraRunning((v) => !v);
-                        break;
-                    case "F3":
-                        if (inGame) break;
-                        addPoint();
-                        break;
-                    case "F4":
-                        if (inGame) break;
-                        removeLastPoint();
-                        break;
+                // F1 toggles the dev panel — only when not in-game so it doesn't
+                // override the OSRS Attack tab hotkey
+                if (e.key === "F1" && !osrsClient.isLoggedIn()) {
+                    setHideUi((v) => !v);
                 }
             }
 
@@ -208,8 +194,8 @@ export const DebugControls = memo(
         }
 
         const recordSchema: Schema = {
-            "Add point (F3)": button(() => addPoint()),
-            "Delete last point (F4)": button(() => removeLastPoint()),
+            "Add point": button(() => addPoint()),
+            "Delete last point": button(() => removeLastPoint()),
             Length: {
                 value: animationDuration,
                 onChange: (v: number) => {
@@ -220,11 +206,11 @@ export const DebugControls = memo(
         };
 
         if (isCameraRunning) {
-            const buttonName = "Stop (F2)";
+            const buttonName = "Stop";
             recordSchema[buttonName] = button(() => setCameraRunning(false));
             recordSchema[buttonName].order = -1;
         } else {
-            const buttonName = "Start (F2)";
+            const buttonName = "Start";
             recordSchema[buttonName] = button(() => setCameraRunning(true));
             recordSchema[buttonName].order = -1;
         }
