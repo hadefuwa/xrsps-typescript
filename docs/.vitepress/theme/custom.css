@@ -52,7 +52,7 @@
     display: none !important;
 }
 
-/* Make the navbar full-width with a solid background bar */
+/* Full-width navbar */
 .VPNav {
     border-bottom: 2px solid var(--vp-c-brand-1) !important;
 }
@@ -60,42 +60,71 @@
 .VPNavBar {
     background-color: var(--vp-c-bg) !important;
     max-width: 100% !important;
-    padding: 0 24px !important;
+    padding: 0 16px !important;
+}
+
+.VPNavBar .container {
+    max-width: 100% !important;
 }
 
 .VPNavBarContent {
     max-width: 100% !important;
+    justify-content: space-between !important;
 }
 
-/* Tab-style nav items */
+/* Hide the ... overflow button — force all items to show */
+.VPNavBarMenuItemAppearance,
+.VPNavBarExtra {
+    display: none !important;
+}
+
+/* Tab-style nav items — compact so everything fits */
 .VPNavBarMenu {
-    gap: 4px !important;
+    gap: 2px !important;
+    flex-wrap: nowrap !important;
 }
 
-.VPNavBarMenuItem,
 .VPNavBarMenuLink,
 .VPNavBarMenuGroup .button {
-    padding: 6px 18px !important;
+    padding: 5px 12px !important;
     border-radius: 6px !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
     transition: background 0.15s, color 0.15s !important;
     border: 1px solid transparent !important;
 }
 
+/* Hover state */
 .VPNavBarMenuLink:hover,
 .VPNavBarMenuGroup .button:hover {
     background: var(--vp-c-brand-1) !important;
-    color: #fff !important;
+    color: #ffffff !important;
     border-color: var(--vp-c-brand-1) !important;
     text-decoration: none !important;
 }
 
+.VPNavBarMenuLink:hover span,
+.VPNavBarMenuGroup .button:hover span,
+.VPNavBarMenuLink:hover .text,
+.VPNavBarMenuGroup .button:hover .text {
+    color: #ffffff !important;
+}
+
+/* Active / selected tab */
 .VPNavBarMenuLink.active,
 .VPNavBarMenuGroup.active .button {
     background: var(--vp-c-brand-1) !important;
-    color: #fff !important;
     border-color: var(--vp-c-brand-1) !important;
+}
+
+.VPNavBarMenuLink.active,
+.VPNavBarMenuLink.active span,
+.VPNavBarMenuLink.active .text,
+.VPNavBarMenuGroup.active .button,
+.VPNavBarMenuGroup.active .button span,
+.VPNavBarMenuGroup.active .button .text {
+    color: #ffffff !important;
 }
 
 /* Dropdown menu */
@@ -103,23 +132,18 @@
     border: 1px solid var(--vp-c-brand-1) !important;
     border-radius: 8px !important;
     overflow: hidden !important;
-    min-width: 200px !important;
+    min-width: 190px !important;
 }
 
 .VPNavBarMenuGroup .item .link {
-    padding: 10px 18px !important;
-    font-size: 14px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
     transition: background 0.1s !important;
 }
 
 .VPNavBarMenuGroup .item .link:hover {
     background: var(--vp-c-brand-soft) !important;
     color: var(--vp-c-brand-1) !important;
-}
-
-/* Subtle second row tab bar under the nav */
-.VPNavBarMenu::before {
-    display: none;
 }
 
 /* ── Footer ─────────────────────────────────────────── */
