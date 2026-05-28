@@ -30,7 +30,7 @@ export interface PlayerLookup {
  */
 export class AuthenticationService {
     private loginAttempts = new Map<string, { count: number; resetTime: number }>();
-    private readonly MAX_LOGIN_ATTEMPTS = 5;
+    private readonly MAX_LOGIN_ATTEMPTS = 200;
     private readonly LOGIN_ATTEMPT_WINDOW_MS = 60000;
 
     constructor(

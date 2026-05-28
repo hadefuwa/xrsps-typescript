@@ -72,9 +72,50 @@ async function main() {
     await waitMs(400);
     await page.keyboard.type("::bot", { delay: 80 });
     await page.keyboard.press("Enter");
-    await waitMs(1000);
+    await waitMs(800);
 
-    console.log("[bot] Done! Browser stays open. Ctrl+C to quit.");
+    // Restore items (gives shrimp + food)
+    await page.keyboard.press("Enter");
+    await waitMs(300);
+    await page.keyboard.type("::restoreitems", { delay: 80 });
+    await page.keyboard.press("Enter");
+    await waitMs(2000);
+
+    // ── Closed-loop eat test ────────────────────────────────────────
+    console.log("[bot] Starting eat test...");
+
+    // Check socket and game state first
+    const debug = await page.evaluate(() => {
+        const client = (window as any).osrsClient;
+        const test = (window as any).xrspsTest;
+        return {
+            hasClient: !!client,
+            hasTest: !!test,
+            isLoggedIn: client?.isLoggedIn?.() ?? false,
+            gameState: client?.gameState,
+            inv: test?.getInventory() ?? [],
+        };
+    });
+    console.log("[bot] Debug:", JSON.stringify({ hasClient: debug.hasClient, hasTest: debug.hasTest, isLoggedIn: debug.isLoggedIn, gameState: debug.gameState }));
+    console.log("[bot] Inventory slots with food:", debug.inv.filter((s: any) => [315,385,391,2309].includes(s.itemId)));
+
+    const shrimp = debug.inv.find((s: any) => s.itemId === 315);
+    if (!shrimp) {
+        console.log("[bot] FAIL: no shrimp found");
+    } else {
+        console.log(`[bot] Shrimp at slot ${shrimp.slot} — sending eatItem...`);
+        const sent = await page.evaluate(() => (window as any).xrspsTest?.eatItem(315));
+        console.log(`[bot] eatItem returned: ${sent}`);
+
+        await waitMs(3000); // wait 5 ticks
+
+        const invAfter = await page.evaluate(() => (window as any).xrspsTest?.getInventory() ?? []);
+        const shrimpAfter = invAfter.find((s: any) => s.itemId === 315);
+        console.log(`[bot] Shrimp gone: ${!shrimpAfter}`);
+        console.log(!shrimpAfter ? "[bot] PASS: shrimp consumed!" : "[bot] FAIL: shrimp still there");
+    }
+
+    console.log("[bot] Done. Browser stays open. Ctrl+C to quit.");
     await new Promise(() => {});
 }
 

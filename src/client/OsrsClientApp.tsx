@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { mountTestHelpers } from "../test-helpers";
 import { registerSerializer } from "threads";
 import WebFont from "webfontloader";
 
@@ -292,6 +293,7 @@ function OsrsClientApp() {
             // Set OsrsClient immediately so GameContainer can render the login overlay
             setOsrsClient(client);
             window.osrsClient = client;
+            mountTestHelpers(client);
 
             // ========== Download cache with progress routed through OsrsClient ==========
             // Load all cache files during DOWNLOADING phase

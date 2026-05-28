@@ -100,6 +100,7 @@ export class InventoryMessageService {
         }
 
         const nowTick = this.deps.getCurrentTick();
+        logger.info(`[eat-debug] inventory_use itemId=${payload.itemId} slot=${slotIndex} option=${optionLower}`);
         // First, allow scripts to handle item actions (e.g., bury bones, herblore steps)
         if (optionLower) {
             try {

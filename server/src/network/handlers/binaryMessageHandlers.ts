@@ -4,6 +4,7 @@
  */
 import type { WebSocket } from "ws";
 
+import { logger } from "../../utils/logger";
 import { SkillId } from "../../../../src/rs/skill/skills";
 import { CustomItemRegistry } from "../../../../src/custom/items";
 import type { PlayerState } from "../../game/player";
@@ -142,8 +143,9 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
             const slotVal = hasChild ? childIndex : undefined;
             const hasValidSlot = slotVal !== undefined && slotVal >= 0 && slotVal !== 65535;
 
+            logger.info(`[if_triggerop] player=${player.id} widgetUid=${widgetUid} groupId=${groupId} op=${opcodeParam} itemId=${itemId} slot=${slotVal} hasValidSlot=${hasValidSlot}`);
+
             // Check for inventory item actions first (eat, drink, bury, etc.)
-            // This mirrors the same routing in createWidgetActionHandler.
             if (itemId !== undefined && itemId > 0 && hasValidSlot) {
                 const scriptRuntime = services.getScriptRuntime();
                 let actions: (string | null | undefined)[] | undefined;
@@ -154,11 +156,14 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
                 if (!actions) {
                     actions = services.getObjType(itemId)?.inventoryActions;
                 }
+                logger.info(`[if_triggerop] itemId=${itemId} cache actions=${JSON.stringify(actions)} op-1=${opcodeParam-1} resolved=${actions?.[opcodeParam-1]}`);
                 if (actions) {
                     const resolved = actions[opcodeParam - 1];
                     if (resolved) {
                         const tick = services.getCurrentTick();
-                        if (scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: resolved.toLowerCase() })) return;
+                        const queued = scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: resolved.toLowerCase() });
+                        logger.info(`[if_triggerop] queueItemAction option=${resolved.toLowerCase()} queued=${queued}`);
+                        if (queued) return;
                     }
                 }
                 const tick = services.getCurrentTick();

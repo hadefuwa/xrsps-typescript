@@ -414,6 +414,29 @@ export class InventoryActionHandler {
         }
         const consumedItemId = slotEntry.itemId;
 
+        // If the action was scheduled by scheduleConsumableAction it carries an apply()
+        // callback containing the heal/animation/sound logic. Call that directly rather
+        // than re-invoking the script handler (which would schedule yet another action).
+        logger.info(`[eat-debug] executeScriptedConsumeAction itemId=${consumedItemId} slot=${slotIndex} hasApply=${!!data.apply} option=${option}`);
+        if (data.apply) {
+            logger.info(`[eat-debug] calling data.apply()`);
+            data.apply();
+            // Remove the item unless the handler already replaced it (e.g. pie → half-pie).
+            const invAfter = this.svc.inventoryService.getInventory(player);
+            const slotAfter = invAfter[slotIndex];
+            if (slotAfter && slotAfter.quantity > 0 && slotAfter.itemId === consumedItemId) {
+                logger.info(`[eat-debug] consuming item slot=${slotIndex} itemId=${consumedItemId}`);
+                this.svc.inventoryService.consumeItem(player, slotIndex);
+            }
+            // Force immediate inventory sync so client sees the removed item
+            this.svc.inventoryService.snapshotInventoryImmediate(player);
+            return {
+                ok: true,
+                cooldownTicks: 3,
+                effects: [{ type: "inventorySnapshot", playerId: player.id }],
+            };
+        }
+
         const handler = this.svc.scriptRegistry.findItemAction(consumedItemId, option);
         if (handler) {
             handler({
