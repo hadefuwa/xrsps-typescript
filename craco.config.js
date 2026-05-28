@@ -57,6 +57,7 @@ module.exports = {
             // addBeforeLoader(webpackConfig, loaderByName('file-loader'), glslLoader);
 
             webpackConfig.resolve.fallback = {
+                ...(webpackConfig.resolve.fallback ?? {}),
                 fs: false,
             };
 
