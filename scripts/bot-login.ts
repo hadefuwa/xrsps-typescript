@@ -1,13 +1,6 @@
 /**
  * Playwright auto-login bot.
- * Opens a real Chromium browser, loads the game, logs in, and types ::bot.
- *
- * Usage:
- *   yarn bot:login [username] [password]
- *   yarn bot:login Pnda mypassword
- *
- * The browser window stays open so you can watch it play.
- * Close the terminal window when done.
+ * Usage: yarn bot:login [username] [password]
  */
 
 import { chromium } from "playwright";
@@ -21,66 +14,68 @@ async function waitMs(ms: number) {
 }
 
 async function main() {
-    console.log(`[bot] Launching browser → ${GAME_URL}`);
+    console.log(`[bot] Launching → ${GAME_URL} as "${USERNAME}"`);
 
-    const browser = await chromium.launch({
-        headless: false,
-        args: ["--autoplay-policy=no-user-gesture-required"],
-    });
-
+    const browser = await chromium.launch({ headless: false });
     const page = await browser.newPage();
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto(GAME_URL);
 
-    // Wait for canvas to appear (game loaded in browser)
-    console.log("[bot] Waiting for game canvas...");
-    await page.waitForSelector("canvas", { timeout: 30_000 });
-    console.log("[bot] Canvas found. Waiting for login screen...");
+    const canvas = page.locator("canvas").first();
+    await canvas.waitFor({ state: "visible", timeout: 30_000 });
+    console.log("[bot] Canvas visible. Waiting for login screen...");
+    await waitMs(7000);
 
-    // Give the login screen time to render and server list to auto-select
-    await waitMs(6000);
+    // Read exact button coordinates from the running game client
+    const existingUserCoords = await page.evaluate(() => {
+        const client = (window as any).osrsClient;
+        if (!client?.loginRenderer) return null;
+        const r = client.loginRenderer;
+        const scale = r.renderScale ?? 1;
+        const ox = r.renderOffsetX ?? 0;
+        const oy = r.renderOffsetY ?? 0;
+        const lx = (r.loginBoxCenter ?? 382) + 80;
+        const ly = 291;
+        return {
+            x: lx * scale + ox,
+            y: ly * scale + oy,
+            debug: { scale, ox, oy, lx, ly, loginBoxCenter: r.loginBoxCenter },
+        };
+    });
 
-    // Click the canvas to ensure it has focus
-    await page.mouse.click(512, 384);
-    await waitMs(500);
+    if (existingUserCoords) {
+        console.log(`[bot] Existing User coords from game:`, existingUserCoords.debug);
+        console.log(`[bot] Clicking at screen (${Math.round(existingUserCoords.x)}, ${Math.round(existingUserCoords.y)})`);
+        await page.mouse.click(existingUserCoords.x, existingUserCoords.y);
+    } else {
+        // Fallback: click at a reasonable position
+        console.log("[bot] osrsClient not found, trying fallback click at (745, 440)");
+        await page.mouse.click(745, 440);
+    }
 
-    // The login form auto-focuses the username field.
-    // Just start typing the username.
-    console.log(`[bot] Typing username: ${USERNAME}`);
-    await page.keyboard.type(USERNAME, { delay: 80 });
+    await waitMs(1500);
+    console.log("[bot] Clicked Existing User — typing credentials...");
 
-    // Tab to password field
+    await page.keyboard.type(USERNAME, { delay: 100 });
+    await waitMs(400);
     await page.keyboard.press("Tab");
     await waitMs(300);
-
-    console.log("[bot] Typing password...");
-    await page.keyboard.type(PASSWORD, { delay: 80 });
-
-    // Enter to submit login
+    await page.keyboard.type(PASSWORD, { delay: 100 });
+    await waitMs(300);
     await page.keyboard.press("Enter");
-    console.log("[bot] Login submitted. Waiting for world to load...");
 
-    // Wait for the 3D world to load (Loading - please wait disappears)
-    // This takes a few seconds after login
-    await waitMs(10_000);
+    console.log("[bot] Login submitted — waiting 12s...");
+    await waitMs(12_000);
 
-    // Open chat and type ::bot to register as test bot
-    console.log("[bot] Sending ::bot command...");
-    await page.keyboard.press("Enter");  // open chat
+    console.log("[bot] Sending ::bot...");
+    await page.keyboard.press("Enter");
     await waitMs(400);
-    await page.keyboard.type("::bot", { delay: 60 });
+    await page.keyboard.type("::bot", { delay: 80 });
     await page.keyboard.press("Enter");
-
     await waitMs(1000);
-    console.log("[bot] Done! Browser stays open.");
-    console.log("[bot] Check http://localhost:7654/status to verify registration.");
-    console.log("[bot] Press Ctrl+C in this terminal to close the browser.");
 
-    // Keep alive
+    console.log("[bot] Done! Browser stays open. Ctrl+C to quit.");
     await new Promise(() => {});
 }
 
-main().catch((e) => {
-    console.error("[bot] Failed:", e.message);
-    process.exit(1);
-});
+main().catch((e) => { console.error("[bot] Error:", e.message); process.exit(1); });
