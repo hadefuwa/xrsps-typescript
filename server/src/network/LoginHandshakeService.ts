@@ -289,16 +289,10 @@ export class LoginHandshakeService {
                 }
 
                 // Apply gamemode login varbits (diary unlocks, xp drops, etc.)
-                // UI-critical varbits (quest counts, diary flags) are always applied.
-                // Player preference varbits (XP drops, music) are only set on first login.
                 const loginVarbits = this.svc.gamemode.getLoginVarbits?.(p);
-                const preferenceVarbits = (this.svc.gamemode as any).getPlayerPreferenceVarbits?.() as Set<number> | undefined;
                 if (loginVarbits) {
                     for (const [varbitId, value] of loginVarbits) {
-                        const isPreference = preferenceVarbits?.has(varbitId) ?? false;
-                        if (!isPreference || !p.varps.hasVarbitValue(varbitId)) {
-                            p.varps.setVarbitValue(varbitId, value);
-                        }
+                        p.varps.setVarbitValue(varbitId, value);
                     }
                 }
 

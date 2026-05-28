@@ -30,7 +30,8 @@ const PORT = 7654;
 type JsonBody = Record<string, unknown>;
 
 export function register(registry: IScriptRegistry, services: ScriptServices): void {
-    if (process.env.NODE_ENV === "production") return;
+    // Disabled — HTTP server port conflicts crash the game server process. Needs rewrite.
+    void services; void registry; return;
 
     // Registry of players who have opted in as test bots via ::bot command
     const bots = new Map<string, PlayerState>();
