@@ -142,8 +142,22 @@ export interface ServerListEntry {
     maxPlayers: number;
 }
 
+// When a LAN client loads the page from a non-localhost IP, rewrite localhost:43594
+// to use the actual server IP so the WebSocket connects to the right machine.
+function normalizeServerAddress(address: string): string {
+    if (
+        address === "localhost:43594" &&
+        typeof window !== "undefined" &&
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1"
+    ) {
+        return `${window.location.hostname}:43594`;
+    }
+    return address;
+}
+
 const FALLBACK_SERVERS: ServerListEntry[] = [
-    { name: "Local Development", address: "localhost:43594", secure: false, playerCount: null, maxPlayers: 2047 },
+    { name: "Local Development", address: normalizeServerAddress("localhost:43594"), secure: false, playerCount: null, maxPlayers: 2047 },
 ];
 
 const SERVER_LIST_URL = "https://xrsps.com/servers.json";
@@ -290,6 +304,9 @@ export class LoginRenderer {
     /** Whether servers have been probed at least once */
     probed: boolean = false;
 
+    /** Called after the server list is fetched for the first time, with the first server entry */
+    onServerListReady: ((server: ServerListEntry) => void) | null = null;
+
     async fetchServerList(): Promise<void> {
         if (this.serverListFetched) return;
         try {
@@ -299,7 +316,7 @@ export class LoginRenderer {
                 if (Array.isArray(data) && data.length > 0) {
                     this.serverList = data.map((s: any) => ({
                         name: s.name ?? "Unknown",
-                        address: s.address ?? "",
+                        address: normalizeServerAddress(s.address ?? ""),
                         secure: s.secure ?? false,
                         playerCount: null,
                         maxPlayers: s.maxPlayers ?? 2047,
@@ -310,6 +327,9 @@ export class LoginRenderer {
             // keep fallback
         }
         this.serverListFetched = true;
+        if (this.onServerListReady && this.serverList.length > 0) {
+            this.onServerListReady(this.serverList[0]);
+        }
     }
 
     refreshServerList(): void {

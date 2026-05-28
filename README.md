@@ -1,40 +1,124 @@
-<p align="center">
-  <img src="docs/public/xrsps.png" alt="XRSPS" width="128">
-</p>
+# xrsps-typescript (personal fork)
 
-<p align="center">
-  <strong>A community-driven project inspired by Project Zanaris.</strong><br>
-  OSRS in the browser with a React/WebGL client and TypeScript WebSocket server.
-</p>
-
-<p align="center">
-  <a href="https://xrsps.com"><img src="https://img.shields.io/badge/Docs-xrsps.com-5b8def?style=for-the-badge&logo=bookstack&logoColor=white" alt="Docs"></a>
-  <br>
-  <a href="https://discord.gg/3dzttF2q73"><img src="https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <br>
-  <a href="https://trello.com/b/UjMvJYrl/xrsps"><img src="https://img.shields.io/badge/Trello-Board-0052CC?style=for-the-badge&logo=trello&logoColor=white" alt="Trello"></a>
-</p>
+> **Fork of [xrsps/xrsps-typescript](https://github.com/xrsps/xrsps-typescript)**  
+> Original project by the xrsps contributors. This fork documents my exploration of the project and includes LAN/multiplayer fixes.
 
 ---
 
-## Quick Start
+## What this project is
 
-Requires **Node.js v22.16+** and **Yarn**.
+An OSRS game engine written entirely in TypeScript — both client and server. No Java. Runs in the browser via WebGL 2 (PicoGL). The goal of the original project is to make it easy to run your own OSRS-based private server accessible from any browser.
+
+**What actually works:**
+- Browser-based OSRS client with GPU rendering
+- Movement, camera, map loading
+- Basic combat (melee, ranged, magic)
+- Some skills: fishing, woodcutting, firemaking, mining, prayer (burying bones), fletching, smithing
+- Leagues V gamemode shell with task tracking and mastery points
+- Music and sound effects from the cache
+- Auto-downloads the OSRS cache from OpenRS2 on first run
+- Multi-player (multiple people can connect to the same server)
+
+**What doesn't work or is missing:**
+- Eating food registers in code but may silently fail (option case mismatch between client and server)
+- NPC dialogue: every NPC says "Content not implemented yet" — only Romeo has actual scripted dialogue
+- Most item interactions beyond basic equip/drop are unimplemented
+- No quests
+- Shops exist in code but very few are scripted (Aubury rune shop, Zaff's)
+- No quest diary, no achievement system beyond leagues tasks
+- Map editor is planned/WIP
+
+This is a tech demo with a thin content layer. The engine is genuinely impressive. The game content is very early stage.
+
+---
+
+## My changes (vs upstream)
+
+- **LAN/multiplayer fix**: Server list now auto-rewrites `localhost:43594` to use `window.location.hostname`, so LAN and Tailscale users connecting via IP get the right WebSocket address automatically
+- **Auto-select server**: First server in the list is automatically selected on load — no need to manually click the row before logging in
+- **Suppress storage warning**: Removed the "Persistent storage not supported" banner that shows for non-HTTPS connections; the game works fine without it
+- **CLAUDE.md**: Added architecture documentation for AI-assisted development
+
+---
+
+## Setup
+
+Requires Node.js v22+ and Yarn. Run once:
 
 ```bash
-git clone https://github.com/xrsps/xrsps-typescript.git
+git clone https://github.com/hadefuwa/xrsps-typescript.git
 cd xrsps-typescript
 yarn install
-yarn server:build-collision
-yarn export-map-images
-yarn server:start        # terminal 1
-yarn start               # terminal 2
+yarn ensure-cache           # downloads ~1GB OSRS cache from OpenRS2
+yarn export-map-images      # generates minimap tiles (~2 min)
+yarn server:build-collision # precomputes collision data (~5 min)
 ```
 
-See the [full setup guide](https://xrsps.com/setup) for details.
+Then run (two terminals):
+
+```bash
+# Terminal 1
+yarn server:start
+
+# Terminal 2
+yarn start
+```
+
+Open `http://localhost:3000`. Create any username/password on first login (no external auth).
+
+### LAN / Tailscale multiplayer
+
+The server binds to `0.0.0.0:43594` by default. Open the port in Windows Firewall (run as Administrator):
+
+```powershell
+netsh advfirewall firewall add rule name="XRSPS Game Server" dir=in action=allow protocol=TCP localport=43594
+netsh advfirewall firewall add rule name="XRSPS Client" dir=in action=allow protocol=TCP localport=3000
+```
+
+Others on your LAN or Tailscale network go to `http://{your-ip}:3000`. The server list automatically shows the correct address.
+
+### Server config
+
+Edit `server/config.json`:
+
+```json
+{
+  "serverName": "Your Server Name",
+  "maxPlayers": 2047,
+  "gamemode": "leagues-v"
+}
+```
+
+Available gamemodes: `vanilla`, `leagues-v`
 
 ---
 
-<p align="center">
-  <sub>Fan project. Not affiliated with, endorsed by, or connected to Jagex Ltd.<br>Old School RuneScape and related assets/trademarks belong to their respective owners.</sub>
-</p>
+## Architecture (brief)
+
+- `src/` — React + WebGL client (browser)
+- `server/` — Node.js WebSocket game server
+- `src/rs/` — OSRS cache parsers, CS2 VM, scene builder (shared by both)
+- `src/shared/` — Network protocol constants
+- `server/gamemodes/` — Content layer: skills, NPC scripts, combat, loot tables
+- `caches/` — Downloaded OSRS cache files (gitignored)
+
+Server tick: 600ms. WebSocket on port 43594. Cache revision tracked in `target.txt`.
+
+See `CLAUDE.md` for full architecture notes.
+
+---
+
+## Forks worth knowing about
+
+| Fork | Notes |
+|---|---|
+| [Dexploarer/scape](https://github.com/Dexploarer/scape) | 48+ commits ahead — PostgreSQL account storage, multi-world, bot SDK |
+| [Paepay/xrsps-typescript](https://github.com/Paepay/xrsps-typescript) | Most active gameplay contributor — Ancient Magicks, NPC shops, autocast |
+
+---
+
+## Original project
+
+- GitHub: [xrsps/xrsps-typescript](https://github.com/xrsps/xrsps-typescript)
+- Docs: [xrsps.com](https://xrsps.com)
+- Discord: linked from xrsps.com

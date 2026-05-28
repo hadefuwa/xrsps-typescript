@@ -519,6 +519,19 @@ export class OsrsClient {
     /** Login screen renderer */
     loginRenderer: LoginRenderer = new LoginRenderer();
 
+    private initLoginRendererCallbacks(): void {
+        this.loginRenderer.onServerListReady = (server) => {
+            // Auto-select first server unless the user already has one saved
+            const hasSaved = this.loginState.serverAddress !== "localhost:43594";
+            if (!hasSaved) {
+                this.loginState.serverAddress = server.address;
+                this.loginState.serverName = server.name;
+                this.loginState.serverSecure = server.secure;
+                setServerUrl(`${server.secure ? "wss" : "ws"}://${server.address}`);
+            }
+        };
+    }
+
     mapFileIndex!: MapFileIndex;
 
     // Model loader for building runtime models (used by player pipeline)
@@ -1088,6 +1101,7 @@ export class OsrsClient {
         rendererType: OsrsRendererType,
         cache?: LoadedCache,
     ) {
+        this.initLoginRendererCallbacks();
         setSpellSelectionClearHandler(() => this.clearSelectedSpell());
         setNpcExamineIdResolver((serverId) => this.resolveNpcExamineTypeId(serverId));
         const globalState = globalThis as typeof globalThis & {

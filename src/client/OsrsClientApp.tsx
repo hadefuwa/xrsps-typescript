@@ -207,11 +207,9 @@ function OsrsClientApp() {
                     );
                     // Notification removed - user is likely on iOS PWA where storage is persistent anyway
                 } else if (persisted === "unsupported") {
+                    // Non-secure origins (LAN HTTP) don't support the Storage API — game works fine without it
                     console.warn(
                         "[storage] Persistent storage API not available; browser may evict cached data",
-                    );
-                    addStorageWarning(
-                        "Persistent storage not supported in this browser. Cached assets may be cleared. Install as PWA or use a modern browser.",
                     );
                 }
 

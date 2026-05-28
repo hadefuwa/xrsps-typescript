@@ -101,6 +101,14 @@ module.exports = {
                     },
                 },
             },
+            proxy: {
+                "/game-ws": {
+                    target: "ws://localhost:43594",
+                    ws: true,
+                    pathRewrite: { "^/game-ws": "/" },
+                    changeOrigin: true,
+                },
+            },
             setupMiddlewares: (middlewares, devServer) => {
                 if (!devServer) {
                     throw new Error("webpack-dev-server is not defined");

@@ -567,7 +567,7 @@ type ClientToServer =
 const getEnv = (key: string): string | undefined =>
     typeof process !== "undefined" && process.env ? process.env[key] : undefined;
 
-const DEFAULT_URL = "ws://localhost:43594";
+const DEFAULT_URL = getEnv("REACT_APP_SERVER_URL") ?? "ws://localhost:43594";
 const LOGIN_CONNECT_RETRY_DELAY_MS = 1000;
 
 let socket: WebSocket | null = null;
