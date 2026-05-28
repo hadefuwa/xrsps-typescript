@@ -66,6 +66,39 @@ option.toLowerCase()
 
 ---
 
+## BUG-003 — Depositing items from bank inventory panel does nothing
+
+**Status:** Fixed in commit `8d06c1c`  
+**Severity:** High — core bank deposit flow broken for item-by-item deposits  
+**GitHub Issue:** [#13](https://github.com/hadefuwa/xrsps-typescript/issues/13)
+
+### Symptom
+Opening the bank works. Clicking items in the inventory side panel (left-click or right-click Deposit-X) does nothing — items stay in inventory and the bank does not update.
+
+### Root cause
+`registerBanksideWidgets` in `server/gamemodes/vanilla/banking/bankWidgets.ts` line 348 called `event.services?.depositInventoryItemToBank?.()`. `depositInventoryItemToBank` is not a property of `ScriptServices` — it lives under `ScriptServices.banking` (a `BankingServices` sub-object). Because the property doesn't exist on `event.services` directly, optional chaining `?.()` short-circuits to `undefined` on every invocation, silently doing nothing.
+
+The bug only affects the `registerBanksideWidgets` deposit handler. The "Deposit Inventory" button (`BANK_WIDGET_DEPOSIT_INV`) and withdraw handlers were unaffected — they correctly use `services.banking?.depositInventoryToBank` and `services.banking!.withdrawFromBankSlot!` respectively.
+
+**File:** `server/gamemodes/vanilla/banking/bankWidgets.ts` line 348
+
+### Fix
+```ts
+// Before
+const result = event.services?.depositInventoryItemToBank?.(
+
+// After
+const result = event.services.banking?.depositInventoryItemToBank?.(
+```
+
+### Why the fix works
+`BankingServices` is registered as `ScriptServices.banking` (optional, gamemode-contributed). Calling `event.services.banking?.depositInventoryItemToBank?.()` correctly traverses into the banking sub-service before calling the method.
+
+### Related systems
+Any future widget action handlers that call banking/shopping/production methods should always go through `event.services.banking?.`, `event.services.shopping?.`, etc. — never call methods directly on `event.services` unless they are top-level `ScriptServices` members (messaging, variables, skills, inventory, etc.).
+
+---
+
 ## Reporting new bugs
 
 When you find a bug, open a [GitHub Issue](https://github.com/hadefuwa/xrsps-typescript/issues/new) with:
