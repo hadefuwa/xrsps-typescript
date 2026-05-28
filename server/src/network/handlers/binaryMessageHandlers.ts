@@ -139,9 +139,35 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
             const componentId = widgetUid & 0xffff;
             const hasChild = childIndex >= 0;
             const childId = hasChild ? childIndex : componentId;
+            const slotVal = hasChild ? childIndex : undefined;
+            const hasValidSlot = slotVal !== undefined && slotVal >= 0 && slotVal !== 65535;
+
+            // Check for inventory item actions first (eat, drink, bury, etc.)
+            // This mirrors the same routing in createWidgetActionHandler.
+            if (itemId !== undefined && itemId > 0 && hasValidSlot) {
+                const scriptRuntime = services.getScriptRuntime();
+                let actions: (string | null | undefined)[] | undefined;
+                const customItem = CustomItemRegistry.get(itemId);
+                if (customItem?.definition?.objType?.inventoryActions) {
+                    actions = customItem.definition.objType.inventoryActions;
+                }
+                if (!actions) {
+                    actions = services.getObjType(itemId)?.inventoryActions;
+                }
+                if (actions) {
+                    const resolved = actions[opcodeParam - 1];
+                    if (resolved) {
+                        const tick = services.getCurrentTick();
+                        if (scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: resolved.toLowerCase() })) return;
+                    }
+                }
+                const tick = services.getCurrentTick();
+                if (scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0 })) return;
+            }
+
             services.getWidgetDialogHandler().handleWidgetActionMessage(ctx.ws, {
                 widgetId: widgetUid, groupId, childId, opId: opcodeParam,
-                slot: hasChild ? childIndex : undefined, itemId,
+                slot: slotVal, itemId,
             });
         }
     };
