@@ -255,7 +255,10 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
         getCs2ModalManager: () => svc.cs2ModalManager!,
         getWidgetDialogHandler: () => svc.widgetDialogHandler!,
         getObjType: (itemId) => svc.dataLoaderService.getObjType(itemId),
-        getInventoryService: () => svc.inventoryService,
+        getInventoryService: () => ({
+            consumeItem: (player: any, slot: number) => svc.inventoryService.consumeItem(player, slot),
+            sendInventorySnapshotImmediate: (ws: any, player: any) => svc.inventoryService.sendInventorySnapshotImmediate(ws, player),
+        }),
         handleInventoryUseOnMessage: (ws, payload) =>
             svc.inventoryMessageService!.handleInventoryUseOnMessage(ws, payload as any),
     };

@@ -26,6 +26,8 @@ export function mountTestHelpers(client: OsrsClient): void {
             const slots = (client as any).inventory?.getSlots?.() ?? [];
             const slot = slots.findIndex((s: any) => s && s.itemId === itemId);
             if (slot < 0) return false;
+            // Use the same packet the real client sends (if_triggeroplocal via sendInventoryUse)
+            // "Eat" is op 1 for food items in OSRS cache inventoryActions
             sendInventoryUse(slot, itemId, 1, "Eat");
             return true;
         },

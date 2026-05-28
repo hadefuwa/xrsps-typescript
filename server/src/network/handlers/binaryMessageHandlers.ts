@@ -25,7 +25,7 @@ export interface BinaryHandlerExtServices extends MessageHandlerServices {
     getWidgetDialogHandler: () => WidgetDialogHandler;
     getObjType: (itemId: number) => { inventoryActions?: (string | null)[] } | undefined;
     handleInventoryUseOnMessage: (ws: WebSocket, payload: Record<string, unknown>) => void;
-    getInventoryService: () => { consumeItem: (player: any, slot: number) => boolean; snapshotInventoryImmediate: (player: any) => void };
+    getInventoryService: () => { consumeItem: (player: any, slot: number) => boolean; sendInventorySnapshotImmediate: (ws: WebSocket, player: any) => void };
 }
 
 export function registerBinaryHandlers(
@@ -166,11 +166,11 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
                         const queued = scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: optLower });
                         logger.info(`[if_triggerop] queueItemAction option=${optLower} queued=${queued}`);
                         if (queued) {
-                            // Consume + snapshot immediately so item vanishes on click.
-                            // The heal/animation/sound still runs on the next tick.
-                            // The scheduled action uses alreadyConsumed:true to skip re-consume.
+                            // Consume + send snapshot immediately (bypass broadcast queue)
+                            // so item vanishes on click with no tick delay.
+                            // Heal/animation/sound still run on the scheduled tick.
                             services.getInventoryService().consumeItem(player, slotVal ?? 0);
-                            services.getInventoryService().snapshotInventoryImmediate(player);
+                            services.getInventoryService().sendInventorySnapshotImmediate(ctx.ws, player);
                             return;
                         }
                     }

@@ -104,25 +104,32 @@ async function main() {
         console.log("[bot] FAIL: no shrimp found");
     } else {
         console.log(`[bot] Shrimp at slot ${shrimp.slot} — sending eatItem...`);
+        const eatSlot = shrimp.slot;
+        const countBefore = debug.inv.filter((s: any) => s.itemId === 315).length;
         const sent = await page.evaluate(() => (window as any).xrspsTest?.eatItem(315));
-        console.log(`[bot] eatItem returned: ${sent}`);
+        console.log(`[bot] eatItem returned: ${sent}, eating slot ${eatSlot}, shrimps before: ${countBefore}`);
 
-        // Wait until shrimp disappears from inventory (up to 5 seconds)
-        let shrimpGone = false;
+        // Wait until one shrimp is consumed (count decreases)
+        let shrimpConsumed = false;
         try {
             await page.waitForFunction(
-                () => {
+                (expectedCount: number) => {
                     const inv = (window as any).xrspsTest?.getInventory() ?? [];
-                    return !inv.some((s: any) => s.itemId === 315);
+                    const count = inv.filter((s: any) => s.itemId === 315).length;
+                    return count < expectedCount;
                 },
-                { timeout: 5000 }
+                { timeout: 5000 },
+                countBefore,
             );
-            shrimpGone = true;
+            shrimpConsumed = true;
         } catch {
-            shrimpGone = false;
+            shrimpConsumed = false;
         }
 
-        console.log(shrimpGone ? "[bot] PASS: shrimp consumed!" : "[bot] FAIL: shrimp still in inventory after 5s");
+        const invFinal = await page.evaluate(() => (window as any).xrspsTest?.getInventory() ?? []);
+        const countAfter = invFinal.filter((s: any) => s.itemId === 315).length;
+        console.log(`[bot] Shrimps before: ${countBefore}, after: ${countAfter}`);
+        console.log(shrimpConsumed ? `[bot] PASS: shrimp consumed! (${countBefore} → ${countAfter})` : `[bot] FAIL: shrimp count unchanged after 5s`);
     }
 
     console.log("[bot] Done. Browser stays open. Ctrl+C to quit.");

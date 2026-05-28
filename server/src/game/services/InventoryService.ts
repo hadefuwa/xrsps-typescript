@@ -170,7 +170,10 @@ export class InventoryService {
     }
 
     snapshotInventoryImmediate(player: PlayerState): void {
-        this.snapshotInventory(player);
+        try {
+            const sock = this.svc.players?.getSocketByPlayerId(player.id);
+            if (sock) this.sendInventorySnapshotImmediate(sock, player);
+        } catch (err) { logger.warn("[inventory] failed to snapshot inventory immediately", err); }
     }
 
     restoreInventoryItems(
