@@ -38,31 +38,40 @@ When the player clicks X:
 
 ## BUG-002 — Eating food does nothing
 
-**Status:** Unconfirmed — likely a case mismatch  
+**Status:** Fixed in commit `6aa96a2`  
 **Severity:** High — food is a core mechanic  
 **GitHub Issue:** [#2](https://github.com/hadefuwa/xrsps-typescript/issues/2)
 
 ### Symptom
-Right-clicking food in the inventory and selecting "Eat" does nothing. No heal, no animation, no message.
+Right-clicking food in the inventory and selecting "Eat" does nothing. No heal, no animation, no message. No server logs appear.
 
-### Suspected root cause
-The server registers food item handlers with option `"eat"` (lowercase):
+### Root cause
+Right-clicking "Eat" in the inventory sends an `if_triggeroplocal` packet — NOT `inventory_use` as originally assumed. The `if_triggeroplocal` handler in `binaryMessageHandlers.ts` was routing directly to `handleWidgetActionMessage` (the dialog/widget handler) without first checking inventory item actions.
+
+The `widget_action` handler already had the correct inventory routing at lines 90–108: it reads `inventoryActions` from the OSRS cache for the item, resolves the action name by op index, and calls `queueItemAction`. The `if_triggeroplocal` handler was missing this exact check.
+
+**File:** `server/src/network/handlers/binaryMessageHandlers.ts` — `createIfTriggerOpLocalHandler`
+
+### Fix
+Added the same inventory action routing to `createIfTriggerOpLocalHandler` that already existed in `createWidgetActionHandler`:
+
 ```ts
-// server/gamemodes/vanilla/skills/consumables/index.ts
-const option = def.option ?? "eat";
-registry.registerItemAction(def.itemId, handler, option);
+// New code in createIfTriggerOpLocalHandler:
+if (itemId !== undefined && itemId > 0 && hasValidSlot) {
+    const actions = services.getObjType(itemId)?.inventoryActions;
+    if (actions) {
+        const resolved = actions[opcodeParam - 1];
+        if (resolved) {
+            if (scriptRuntime.queueItemAction({ tick, player, itemId, slot, option: resolved.toLowerCase() })) return;
+        }
+    }
+    if (scriptRuntime.queueItemAction({ tick, player, itemId, slot })) return;
+}
+// then falls through to handleWidgetActionMessage
 ```
 
-The OSRS cache sends item options as they appear in the cache data — likely `"Eat"` with a capital E. If `registerItemAction` does a case-sensitive match, the handler never fires.
-
-**File to check:** `server/src/game/scripts/ScriptRegistry.ts` — how does `registerItemAction` match the option string?
-
-### Suspected fix
-Either normalise the option to lowercase when registering, or normalise the incoming packet option before dispatch:
-```ts
-// In ScriptRegistry or the item action handler dispatch
-option.toLowerCase()
-```
+### Why the fix works
+`if_triggeroplocal` carries `opcodeParam` (1 = first right-click option). The fix looks up the item's `inventoryActions` from the cache (e.g. `["Eat", "Examine"]` for shrimp), resolves op 1 → `"eat"`, and passes it to `queueItemAction` which finds the registered food handler. This is the same path that was already working for `widget_action` packets.
 
 ---
 
