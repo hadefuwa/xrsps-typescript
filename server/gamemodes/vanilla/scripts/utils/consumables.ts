@@ -127,6 +127,7 @@ export function scheduleConsumableAction(options: ConsumableActionOptions): bool
                 itemId: normalizedItemId,
                 option,
                 apply: () => runExecute(false),
+                alreadyConsumed: false,
             },
             delayTicks,
             cooldownTicks: effectiveCooldown,

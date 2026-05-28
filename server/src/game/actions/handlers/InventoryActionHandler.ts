@@ -409,26 +409,22 @@ export class InventoryActionHandler {
         const option = data.option;
         const inv = this.svc.inventoryService.getInventory(player);
         const slotEntry = inv[slotIndex];
-        if (!slotEntry || slotEntry.quantity <= 0 || slotEntry.itemId !== expectedItemId) {
+        const itemPresent = !!(slotEntry && slotEntry.quantity > 0 && slotEntry.itemId === expectedItemId);
+        if (!itemPresent && !data.alreadyConsumed) {
             return { ok: false, reason: "item_missing" };
         }
-        const consumedItemId = slotEntry.itemId;
+        const consumedItemId = expectedItemId;
 
         // If the action was scheduled by scheduleConsumableAction it carries an apply()
         // callback containing the heal/animation/sound logic. Call that directly rather
         // than re-invoking the script handler (which would schedule yet another action).
         logger.info(`[eat-debug] executeScriptedConsumeAction itemId=${consumedItemId} slot=${slotIndex} hasApply=${!!data.apply} option=${option}`);
         if (data.apply) {
-            logger.info(`[eat-debug] calling data.apply()`);
+            // If item is still present (inventory_use path), consume it now.
+            // If already gone (if_triggeroplocal instant path), consumeItem returns false gracefully.
+            this.svc.inventoryService.consumeItem(player, slotIndex);
+            // Run heal/animation/sound
             data.apply();
-            // Remove the item unless the handler already replaced it (e.g. pie → half-pie).
-            const invAfter = this.svc.inventoryService.getInventory(player);
-            const slotAfter = invAfter[slotIndex];
-            if (slotAfter && slotAfter.quantity > 0 && slotAfter.itemId === consumedItemId) {
-                logger.info(`[eat-debug] consuming item slot=${slotIndex} itemId=${consumedItemId}`);
-                this.svc.inventoryService.consumeItem(player, slotIndex);
-            }
-            // Force immediate inventory sync so client sees the removed item
             this.svc.inventoryService.snapshotInventoryImmediate(player);
             return {
                 ok: true,

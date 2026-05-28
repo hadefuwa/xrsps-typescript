@@ -25,6 +25,7 @@ export interface BinaryHandlerExtServices extends MessageHandlerServices {
     getWidgetDialogHandler: () => WidgetDialogHandler;
     getObjType: (itemId: number) => { inventoryActions?: (string | null)[] } | undefined;
     handleInventoryUseOnMessage: (ws: WebSocket, payload: Record<string, unknown>) => void;
+    getInventoryService: () => { consumeItem: (player: any, slot: number) => boolean; snapshotInventoryImmediate: (player: any) => void };
 }
 
 export function registerBinaryHandlers(
@@ -160,10 +161,18 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
                 if (actions) {
                     const resolved = actions[opcodeParam - 1];
                     if (resolved) {
+                        const optLower = resolved.toLowerCase();
                         const tick = services.getCurrentTick();
-                        const queued = scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: resolved.toLowerCase() });
-                        logger.info(`[if_triggerop] queueItemAction option=${resolved.toLowerCase()} queued=${queued}`);
-                        if (queued) return;
+                        const queued = scriptRuntime.queueItemAction({ tick, player, itemId, slot: slotVal ?? 0, option: optLower });
+                        logger.info(`[if_triggerop] queueItemAction option=${optLower} queued=${queued}`);
+                        if (queued) {
+                            // Consume + snapshot immediately so item vanishes on click.
+                            // The heal/animation/sound still runs on the next tick.
+                            // The scheduled action uses alreadyConsumed:true to skip re-consume.
+                            services.getInventoryService().consumeItem(player, slotVal ?? 0);
+                            services.getInventoryService().snapshotInventoryImmediate(player);
+                            return;
+                        }
                     }
                 }
                 const tick = services.getCurrentTick();

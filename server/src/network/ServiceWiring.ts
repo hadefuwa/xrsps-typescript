@@ -255,6 +255,7 @@ export function registerMessageHandlers(svc: ServerServices, router: MessageRout
         getCs2ModalManager: () => svc.cs2ModalManager!,
         getWidgetDialogHandler: () => svc.widgetDialogHandler!,
         getObjType: (itemId) => svc.dataLoaderService.getObjType(itemId),
+        getInventoryService: () => svc.inventoryService,
         handleInventoryUseOnMessage: (ws, payload) =>
             svc.inventoryMessageService!.handleInventoryUseOnMessage(ws, payload as any),
     };

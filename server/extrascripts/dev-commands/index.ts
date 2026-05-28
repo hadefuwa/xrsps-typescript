@@ -33,16 +33,20 @@ const RESTORE_ITEMS: Array<{ itemId: number; quantity: number }> = [
 
 export function register(registry: IScriptRegistry, services: ScriptServices): void {
 
-    // ::restoreitems — give back items lost during test API crashes
+    // ::restoreitems — clear inventory and give back standard item set
     registry.registerCommand("restoreitems", (event) => {
         const player = event.player;
+        // Clear all 28 slots first
+        for (let i = 0; i < 28; i++) {
+            services.inventory.setInventorySlot(player, i, -1, 0);
+        }
         let added = 0;
         for (const { itemId, quantity } of RESTORE_ITEMS) {
             const result = services.inventory.addItemToInventory(player, itemId, quantity);
             if (result) added++;
         }
         services.inventory.snapshotInventory(player);
-        return `Restored ${added} item stacks to your inventory.`;
+        return `Inventory cleared and ${added} item stacks restored.`;
     });
 
     // ::bot — mark yourself as a test subject (for future test API use)

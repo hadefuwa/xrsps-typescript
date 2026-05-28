@@ -107,12 +107,22 @@ async function main() {
         const sent = await page.evaluate(() => (window as any).xrspsTest?.eatItem(315));
         console.log(`[bot] eatItem returned: ${sent}`);
 
-        await waitMs(3000); // wait 5 ticks
+        // Wait until shrimp disappears from inventory (up to 5 seconds)
+        let shrimpGone = false;
+        try {
+            await page.waitForFunction(
+                () => {
+                    const inv = (window as any).xrspsTest?.getInventory() ?? [];
+                    return !inv.some((s: any) => s.itemId === 315);
+                },
+                { timeout: 5000 }
+            );
+            shrimpGone = true;
+        } catch {
+            shrimpGone = false;
+        }
 
-        const invAfter = await page.evaluate(() => (window as any).xrspsTest?.getInventory() ?? []);
-        const shrimpAfter = invAfter.find((s: any) => s.itemId === 315);
-        console.log(`[bot] Shrimp gone: ${!shrimpAfter}`);
-        console.log(!shrimpAfter ? "[bot] PASS: shrimp consumed!" : "[bot] FAIL: shrimp still there");
+        console.log(shrimpGone ? "[bot] PASS: shrimp consumed!" : "[bot] FAIL: shrimp still in inventory after 5s");
     }
 
     console.log("[bot] Done. Browser stays open. Ctrl+C to quit.");

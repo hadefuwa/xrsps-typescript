@@ -38,6 +38,8 @@ export interface InventoryConsumeScriptActionData {
     itemId: number;
     option?: string;
     apply?: () => void;
+    /** Item was already consumed immediately at packet receipt — skip consume in executor */
+    alreadyConsumed?: boolean;
 }
 
 export interface InventoryMoveActionData {
