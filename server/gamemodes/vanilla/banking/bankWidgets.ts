@@ -345,7 +345,7 @@ function registerBanksideWidgets(registry: IScriptRegistry): void {
 
         if (!desired || desired <= 0) return;
 
-        const result = event.services?.depositInventoryItemToBank?.(
+        const result = event.services.banking?.depositInventoryItemToBank?.(
             event.player,
             slot,
             desired,
