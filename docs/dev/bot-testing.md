@@ -90,8 +90,25 @@ For now, use `yarn bot:login` to auto-login + register, then verify fixes manual
 
 ---
 
-## Known limitations
+## What the bot can test automatically
 
-- The bot has no way to verify game state programmatically yet (test API disabled)
-- The bot sends `::bot` but there's no way to read a response — it assumes login succeeded after a 12-second wait
-- Full closed-loop testing (auto-eat, verify HP changed) requires the test API to be re-enabled safely
+The bot uses `window.xrspsTest` (mounted in `src/test-helpers.ts`) to read and interact with the game state directly from Playwright.
+
+Current automated tests in `scripts/bot-login.ts`:
+- **Eat test**: gives bot shrimps via `::restoreitems`, calls `xrspsTest.eatItem(315)`, uses `waitForFunction` to confirm shrimp count decreases. **Confirmed PASS.**
+
+### Adding new automated tests
+
+After `::bot` sends and the bot is in-game, add to `scripts/bot-login.ts`:
+
+```ts
+// Example: verify a bone can be buried
+const buried = await page.evaluate(() => (window as any).xrspsTest?.eatItem(526)); // bones itemId
+// waitForFunction to confirm bones gone from inventory
+```
+
+`window.xrspsTest` exposes:
+- `eatItem(itemId)` — sends inventory_use with Eat option
+- `getInventory()` — returns `[{slot, itemId, qty}]` for all non-empty slots
+- `findItem(itemId)` — returns slot index or -1
+- `getHp()` — returns `{current, max}` (limited)
