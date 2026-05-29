@@ -146,8 +146,14 @@ function createIfTriggerOpLocalHandler(services: BinaryHandlerExtServices): Mess
 
             logger.info(`[if_triggerop] player=${player.id} widgetUid=${widgetUid} groupId=${groupId} op=${opcodeParam} itemId=${itemId} slot=${slotVal} hasValidSlot=${hasValidSlot}`);
 
+            // Bank main panel (group 12) uses IF_TRIGGEROPLOCAL for withdrawal — slots are
+            // bank positions, not inventory slots. Never dispatch inventory item actions here;
+            // doing so would fire food/bury/etc handlers with a bank-slot index instead of
+            // an inventory-slot index, consuming the wrong item.
+            const isBankMainWidget = groupId === 12;
+
             // Check for inventory item actions first (eat, drink, bury, etc.)
-            if (itemId !== undefined && itemId > 0 && hasValidSlot) {
+            if (!isBankMainWidget && itemId !== undefined && itemId > 0 && hasValidSlot) {
                 const scriptRuntime = services.getScriptRuntime();
                 let actions: (string | null | undefined)[] | undefined;
                 const customItem = CustomItemRegistry.get(itemId);
