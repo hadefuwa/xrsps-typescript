@@ -13140,8 +13140,8 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                         const option = resolvedLocType.actions?.[actionIdx];
                         if (!option) continue;
                         const locId = interactId;
-                        const locWorldX = worldTileX;
-                        const locWorldY = worldTileY;
+                        const locX = localX;
+                        const locY = localY;
                         const locOption = option;
                         menuEntries.push({
                             option,
@@ -13157,7 +13157,7 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                                 try {
                                     sendLocInteract(
                                         locId,
-                                        { x: locWorldX, y: locWorldY },
+                                        { x: locX, y: locY },
                                         undefined,
                                         locOption,
                                     );
