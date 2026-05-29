@@ -5,7 +5,9 @@
 
 import { chromium } from "playwright";
 
-const USERNAME = process.argv[2] ?? "BotPlayer";
+// Default to "bottest" — a clone of the Pnda account with tutorial already completed.
+// Run ::cloneaccount pnda bottest in-game to refresh the clone from the current Pnda save.
+const USERNAME = process.argv[2] ?? "bottest";
 const PASSWORD = process.argv[3] ?? "bot123";
 const GAME_URL = process.env.GAME_URL ?? "http://localhost:3000";
 

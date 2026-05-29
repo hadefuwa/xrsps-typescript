@@ -71,7 +71,6 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
     // ::testbank — closed-loop bank deposit+withdraw test. Returns PASS/FAIL.
     registry.registerCommand("testbank", (event) => {
         const player = event.player;
-
         // 1. Clear inventory and give 5 shrimp
         for (let i = 0; i < 28; i++) {
             services.inventory.setInventorySlot(player, i, -1, 0);
