@@ -126,6 +126,10 @@ const result = event.services.banking?.depositInventoryItemToBank?.(
 ### Why the fix works
 `BankingServices` is registered as `ScriptServices.banking` (optional, gamemode-contributed). Calling `event.services.banking?.depositInventoryItemToBank?.()` correctly traverses into the banking sub-service before calling the method.
 
+### Verified
+`yarn test:game` → "Banking — slot mapping (BUG-003)" suite (19/19 pass).  
+`yarn bot:login` → bank test: sends `::testbank`, polls for exactly 1 shrimp in inventory.
+
 ### Related systems
 Any future widget action handlers that call banking/shopping/production methods should always go through `event.services.banking?.`, `event.services.shopping?.`, etc. — never call methods directly on `event.services` unless they are top-level `ScriptServices` members (messaging, variables, skills, inventory, etc.).
 
@@ -166,6 +170,10 @@ Bank main panel clicks (groupId=12) route directly to `handleWidgetActionMessage
 The same guard also needed to be applied to `createWidgetActionHandler` for `widget_action` packets. Right-click operations (Withdraw-1, Withdraw-5, etc.) arrive via `widget_action` (not `if_triggeroplocal`), and without the guard, potions with `inventoryActions[1] = "Drink"` would fire `closeInterruptibleInterfaces` — which, after the BUG-001 fix, now also closes type-3 sidemodal interfaces (including the bank side panel). This is what caused "it just closes the bank."
 
 Same `isBankMainWidget = groupId === 12` guard now covers both packet paths. Any future widget-action paths that call `queueItemAction` should apply the same check.
+
+### Verified
+`yarn test:game` → "Banking — isBankMainWidget guard logic (BUG-003b)" suite (19/19 pass).  
+`yarn bot:login` → bank test: sends `::testbank` (deposit+withdraw), polls for 1 shrimp in inventory.
 
 ---
 
