@@ -32,6 +32,10 @@ Once running, share your IP address with friends:
 | Camera zoom | Scroll wheel |
 | Right click | Open context menu |
 | Run | Click the run orb (bottom right of minimap) |
+| Teleport to tile | Open world map → click any location |
+| Teleport (command) | Type `::tele x y` in chat — e.g. `::tele 3222 3218` |
+| Reset to Lumbridge | Type `::spawn` in chat |
+| Show position | Type `::pos` in chat |
 
 ## Known limitations
 

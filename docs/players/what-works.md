@@ -7,7 +7,9 @@ Honest status of features as of the current build. This is a work in progress �
 | Feature | Notes |
 |---|---|
 | Movement & camera | Full movement, run toggle, camera controls |
+| Teleporting | `::spawn` (Lumbridge reset), `::tele x y [level]` (any tile), click world map to teleport |
 | Combat | Melee, ranged, magic — damage, XP, prayer |
+| Eating food | Full — heals correctly, item consumed, no overheal (fixed BUG-002) |
 | Fishing | Full — all fish types, level requirements, XP |
 | Woodcutting | Full — all trees, axes, XP |
 | Mining | Full — all rocks, pickaxes, XP |
@@ -28,7 +30,6 @@ Honest status of features as of the current build. This is a work in progress �
 
 | Feature | Status |
 |---|---|
-| Eating food | Bug — food exists but healing doesn't trigger reliably |
 | NPC dialogue | Only Romeo is scripted. All others say "Content not implemented" |
 | Quests | None implemented |
 | Agility | No courses |
@@ -43,7 +44,9 @@ Honest status of features as of the current build. This is a work in progress �
 
 ## Interface bugs
 
-- ~~Interfaces wouldn't close when clicking X~~ — **Fixed** in this fork
+- ~~Interfaces wouldn't close when clicking X~~ — **Fixed** (BUG-001)
+- ~~Eating food did nothing~~ — **Fixed** (BUG-002)
+- ~~Bank deposit panel did nothing~~ — **Fixed** (BUG-003)
 - Some widgets may not respond correctly to button clicks
 
 ::: info

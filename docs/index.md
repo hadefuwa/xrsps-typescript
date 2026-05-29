@@ -31,7 +31,7 @@ features:
       linkText: Developer guide
     - icon: 🐛
       title: Known Bugs
-      details: Confirmed bugs with root causes and fixes. Interface close fixed. Eating food suspected case-mismatch. Check before spending hours investigating.
+      details: Confirmed bugs with root causes and fixes. BUG-001 (interface close), BUG-002 (eating food), BUG-003 (bank deposit), BUG-004 (sailing stuck) all fixed. Check before spending hours investigating.
       link: /dev/known-bugs
       linkText: View known bugs
     - icon: 📋

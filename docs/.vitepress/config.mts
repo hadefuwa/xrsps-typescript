@@ -30,6 +30,7 @@ export default defineConfig({
                     { text: 'Architecture', link: '/ARCHITECTURE' },
                     { text: 'Code Layers', link: '/dev/code-layers' },
                     { text: 'Adding Content', link: '/dev/adding-content' },
+                    { text: 'AI Testing Guide', link: '/dev/ai-testing-guide' },
                     { text: 'Bot Testing', link: '/dev/bot-testing' },
                     { text: 'Dev Tools (F1)', link: '/dev/dev-tools' },
                     { text: 'Known Bugs', link: '/dev/known-bugs' },
@@ -57,6 +58,7 @@ export default defineConfig({
                     items: [
                         { text: 'Code Layers', link: '/dev/code-layers' },
                         { text: 'Adding Content', link: '/dev/adding-content' },
+                        { text: 'AI Testing Guide', link: '/dev/ai-testing-guide' },
                         { text: 'Bot Testing', link: '/dev/bot-testing' },
                         { text: 'Dev Tools (F1)', link: '/dev/dev-tools' },
                         { text: 'Known Bugs', link: '/dev/known-bugs' },

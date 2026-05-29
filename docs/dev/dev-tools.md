@@ -79,6 +79,38 @@ Use `localStorage` directly or follow the pattern in `src/client/plugins/notes/B
 
 ---
 
+## Chat commands (`::`)
+
+All players can type `::commands` in chat. No login required — there is currently no role gate.
+
+| Command | Effect |
+|---|---|
+| `::spawn` | Teleport to Lumbridge. Also clears any stuck sailing state. |
+| `::tele <x> <y> [level]` | Teleport to exact tile coordinates. Level defaults to 0. e.g. `::tele 3222 3218` or `::tele 2440 3090 0` |
+| `::pos` | Print your current tile coordinates and floor level to chat. |
+| `::item <id> [qty]` | Add an item to your inventory by ID. |
+| `::allrunes [qty]` | Fill inventory with all rune types (default 10,000 each). |
+| `::randomitem` | Give yourself a random unowned collection log item. |
+| `::clear` | Clear your inventory. |
+| `::kill` | Set your HP to 0 (triggers death). |
+| `::whip` | Give yourself an Abyssal whip. |
+| `::quest <name>` | Mark a quest as complete (unlocks spellbook/spell). e.g. `::quest desert treasure`. Use `::quest list` to see all. |
+| `::standard` / `::ancient` / `::lunar` / `::arceuus` | Switch active spellbook. |
+| `::smithing <level>` | Set your Smithing level. |
+| `::levelup` | Level up a random skill by 1. |
+| `::sail` | Board the sailing demo boat (dev/debug — use `::spawn` to escape if stuck). |
+| `::scroll` | Open a debug indexed menu. |
+
+**File:** `server/src/network/handlers/chatHandler.ts`
+
+### Map click teleport
+
+Opening the world map and clicking any tile teleports you there instantly (always at floor 0 — the ground plane). Drag to pan, scroll to zoom.
+
+**Future options planned:** floor selector in map footer, named-location shortcuts, teleport history. See [GitHub issue #19](https://github.com/hadefuwa/xrsps-typescript/issues/19).
+
+---
+
 ## Hiding dev tools in production
 
 The Leva panel is rendered in `src/client/DebugControls.tsx` with `hidden={hideUi}`. The `hideUi` state is toggled by F1.
