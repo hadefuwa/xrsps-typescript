@@ -236,6 +236,28 @@ function handleQuestCommand(
     logger.info(`[cmd] ::quest - Player ${sender.id} completed "${quest.name}"`);
 }
 
+const SAILING_VARBITS_TO_CLEAR = [
+    19136, // VARBIT_SAILING_BOARDED_BOAT
+    19137, // VARBIT_SAILING_BOARDED_BOAT_TYPE
+    19122, // VARBIT_SAILING_BOARDED_BOAT_WORLD
+    19104, // VARBIT_SAILING_PLAYER_IS_ON_PLAYER_BOAT
+    19151, // VARBIT_SAILING_SIDEPANEL_VISIBLE
+    19153, // VARBIT_SAILING_SIDEPANEL_VISIBLE_FROM_COMBAT_TAB
+    19176, // VARBIT_SAILING_SIDEPANEL_HELM_STATUS
+    19175, // VARBIT_SAILING_SIDEPANEL_BOAT_MOVE_MODE
+    19118, // VARBIT_SAILING_PRELOADED_ANIMS
+];
+
+function clearSailingState(sender: PlayerState, services: Pick<MessageHandlerServices, "queueVarbit" | "disposeSailingInstance" | "removeWorldEntity">): void {
+    for (const varbitId of SAILING_VARBITS_TO_CLEAR) {
+        sender.varps.setVarbitValue(varbitId, 0);
+        services.queueVarbit(sender.id, varbitId, 0);
+    }
+    services.disposeSailingInstance?.(sender);
+    services.removeWorldEntity?.(sender.id, 3426 /* SAILING_WORLD_ENTITY_INDEX */);
+    sender.worldViewId = 0;
+}
+
 function createChatHandler(services: MessageHandlerServices): MessageHandler<"chat"> {
     return (ctx) => {
         try {
@@ -461,6 +483,7 @@ function createChatHandler(services: MessageHandlerServices): MessageHandler<"ch
                 }
 
                 if (root === "spawn") {
+                    clearSailingState(sender, services);
                     services.teleportPlayer(sender, 3222, 3218, 0);
                     services.queueChatMessage({
                         messageType: "game",
@@ -468,6 +491,29 @@ function createChatHandler(services: MessageHandlerServices): MessageHandler<"ch
                         targetPlayerIds: [sender.id],
                     });
                     logger.info(`[cmd] ::spawn - Player ${sender.id} teleported to Lumbridge`);
+                    return;
+                }
+
+                if (root === "tele") {
+                    const x = parseInt(parts[1] ?? "", 10);
+                    const y = parseInt(parts[2] ?? "", 10);
+                    const level = parts[3] !== undefined ? parseInt(parts[3], 10) : 0;
+                    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(level) || level < 0 || level > 3) {
+                        services.queueChatMessage({
+                            messageType: "game",
+                            text: "Usage: ::tele <x> <y> [level]  — e.g. ::tele 3222 3218 or ::tele 2440 3090 0",
+                            targetPlayerIds: [sender.id],
+                        });
+                        return;
+                    }
+                    clearSailingState(sender, services);
+                    services.teleportPlayer(sender, x, y, level);
+                    services.queueChatMessage({
+                        messageType: "game",
+                        text: `Teleported to (${x}, ${y}, ${level}).`,
+                        targetPlayerIds: [sender.id],
+                    });
+                    logger.info(`[cmd] ::tele - Player ${sender.id} teleported to (${x}, ${y}, ${level})`);
                     return;
                 }
 

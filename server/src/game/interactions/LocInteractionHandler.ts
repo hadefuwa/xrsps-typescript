@@ -125,9 +125,10 @@ export class LocInteractionHandler {
         const me = this.players.get(ws);
         if (!me) return;
 
-        // Block interactions during tutorial
+        // Block interactions during tutorial (unless the gamemode explicitly allows this loc)
         if (!me.canInteract()) {
-            return;
+            const allowed = me.gamemode.canInteractWithLoc?.(me, data.id, data.action ?? "");
+            if (!allowed) return;
         }
 
         // Starting a new loc interaction cancels any active skill actions

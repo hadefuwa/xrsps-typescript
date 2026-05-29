@@ -96,6 +96,11 @@ export class LeaguesVGamemode extends VanillaGamemode {
         return tutorialStep >= getTutorialCompleteStep(player);
     }
 
+    canInteractWithLoc(_player: PlayerState, locId: number, _action: string): boolean {
+        // Allow barrier pass-through during tutorial
+        return locId === 39652 || locId === 39653;
+    }
+
     canInteractWithNpc(player: PlayerState, npcTypeId: number, option: string): boolean {
         if (this.canInteract(player)) return true;
         const LEAGUE_TUTOR_NPC_TYPE_ID = 315;

@@ -1,12 +1,11 @@
 import { LoginIndex } from "./GameState";
-import { isIosStandalonePwa } from "../../util/DeviceUtil";
 
 const STORAGE_KEY_TITLE_MUSIC_DISABLED = "osrs:titleMusicDisabled";
 const STORAGE_KEY_LAST_SERVER = "osrs:lastServer";
-const STORAGE_KEY_IOS_PWA_LOGIN_STATE = "osrs:iosPwaLoginState";
-const IOS_PWA_LOGIN_STATE_VERSION = 1;
+const STORAGE_KEY_LOGIN_STATE = "osrs:loginState";
+const LOGIN_STATE_VERSION = 1;
 
-type PersistedIosPwaLoginState = {
+type PersistedLoginState = {
     version: number;
     username: string;
     password: string;
@@ -53,27 +52,19 @@ export class LoginState {
         }
     }
 
-    private supportsPersistedLoginState(): boolean {
-        return (
-            isIosStandalonePwa() &&
-            typeof window !== "undefined" &&
-            typeof window.localStorage !== "undefined"
-        );
-    }
-
     private loadPersistedLoginState(): void {
-        if (!this.supportsPersistedLoginState()) {
+        if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
             return;
         }
 
         try {
-            const raw = window.localStorage.getItem(STORAGE_KEY_IOS_PWA_LOGIN_STATE);
+            const raw = window.localStorage.getItem(STORAGE_KEY_LOGIN_STATE) ?? window.localStorage.getItem("osrs:iosPwaLoginState");
             if (!raw) {
                 return;
             }
 
-            const parsed = JSON.parse(raw) as Partial<PersistedIosPwaLoginState>;
-            if (parsed.version !== IOS_PWA_LOGIN_STATE_VERSION) {
+            const parsed = JSON.parse(raw) as Partial<PersistedLoginState>;
+            if (parsed.version !== LOGIN_STATE_VERSION) {
                 return;
             }
 
@@ -108,19 +99,19 @@ export class LoginState {
     }
 
     savePersistedLoginState(): void {
-        if (!this.supportsPersistedLoginState()) {
+        if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
             return;
         }
 
         try {
-            const payload: PersistedIosPwaLoginState = {
-                version: IOS_PWA_LOGIN_STATE_VERSION,
+            const payload: PersistedLoginState = {
+                version: LOGIN_STATE_VERSION,
                 username: this.rememberUsername ? this.username.slice(0, 320) : "",
                 password: this.rememberUsername ? this.password.slice(0, 20) : "",
                 rememberUsername: this.rememberUsername,
                 isUsernameHidden: this.isUsernameHidden,
             };
-            window.localStorage.setItem(STORAGE_KEY_IOS_PWA_LOGIN_STATE, JSON.stringify(payload));
+            window.localStorage.setItem(STORAGE_KEY_LOGIN_STATE, JSON.stringify(payload));
         } catch {
             // localStorage unavailable
         }

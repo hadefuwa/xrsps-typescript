@@ -934,9 +934,9 @@ export class LoginRenderer {
             const radioSprites = this.loadSprites(spriteIndex, "options_radio_buttons");
             if (radioSprites) {
                 this.optionsRadioSprite0 = radioSprites[0];
-                this.optionsRadioSprite2 = radioSprites[2];
-                this.optionsRadioSprite4 = radioSprites[4];
-                this.optionsRadioSprite6 = radioSprites[6];
+                this.optionsRadioSprite2 = radioSprites[1] ?? radioSprites[0];
+                this.optionsRadioSprite4 = radioSprites[2] ?? radioSprites[0];
+                this.optionsRadioSprite6 = radioSprites[3] ?? radioSprites[1] ?? radioSprites[0];
             }
 
             this.worldSelectLeftSprite = this.loadSprite(spriteIndex, "leftarrow");
@@ -1222,40 +1222,24 @@ export class LoginRenderer {
         }
 
         // Checkbox: Remember username
-        if (this.optionsRadioSprite0 && this.fontBold12) {
-            const rememberY = 275; // Updated to match new layout
+        if (this.fontBold12) {
+            const rememberY = 286;
             const checkboxX = this.loginBoxX + 180 - 108;
-            const checkboxW = this.optionsRadioSprite0.subWidth;
-            const checkboxH = this.optionsRadioSprite0.subHeight || 15;
+            const spriteW = this.optionsRadioSprite0?.subWidth ?? 15;
+            const spriteH = this.optionsRadioSprite0?.subHeight ?? 15;
+            const labelW = this.measureText(this.fontBold12, "Remember username: ");
             if (
-                x >= checkboxX &&
-                x <= checkboxX + checkboxW &&
-                y >= rememberY - checkboxH &&
+                x >= checkboxX + labelW &&
+                x <= checkboxX + labelW + spriteW &&
+                y >= rememberY - spriteH &&
                 y <= rememberY
             ) {
                 return LoginActions.TOGGLE_REMEMBER;
             }
-
-            // Checkbox: Hide username
-            const hideTextWidth = this.measureText(this.fontBold12, "Hide username: ");
-            const hideCheckboxX =
-                checkboxX +
-                this.measureText(this.fontBold12, "Remember username: ") +
-                checkboxW +
-                10 +
-                hideTextWidth;
-            if (
-                x >= hideCheckboxX &&
-                x <= hideCheckboxX + checkboxW &&
-                y >= rememberY - checkboxH &&
-                y <= rememberY
-            ) {
-                return LoginActions.TOGGLE_HIDE_USERNAME;
-            }
         }
 
         // Buttons
-        const buttonY = 301;
+        const buttonY = 316;
         if (this.isButtonHit(x, y, this.loginBoxCenter - 80, buttonY)) {
             return LoginActions.LOGIN;
         }
@@ -2138,35 +2122,44 @@ export class LoginRenderer {
         textY += 30;
 
         // Checkboxes (only show when not connecting)
-        if (!isConnecting) {
+        if (!isConnecting && this.fontBold12) {
             const checkboxX = this.loginBoxX + 180 - 108;
+            this.drawText(
+                ctx,
+                this.fontBold12,
+                "Remember username: ",
+                checkboxX,
+                textY,
+                0xffff00,
+            );
+            const textWidth = this.measureText(this.fontBold12, "Remember username: ");
             const rememberSprite = this.getCheckboxSprite(
                 state.rememberUsername,
                 state.rememberUsernameHover,
             );
             if (rememberSprite) {
-                this.drawText(
-                    ctx,
-                    this.fontBold12,
-                    "Remember username: ",
-                    checkboxX,
-                    textY,
-                    0xffff00,
-                );
-                const textWidth = this.measureText(this.fontBold12, "Remember username: ");
                 this.drawSprite(
                     ctx,
                     rememberSprite,
                     checkboxX + textWidth,
                     textY - this.fontBold12.lineHeight,
                 );
+            } else {
+                this.drawText(
+                    ctx,
+                    this.fontBold12,
+                    state.rememberUsername ? "[x]" : "[ ]",
+                    checkboxX + textWidth,
+                    textY,
+                    0xffffff,
+                );
             }
         }
 
         // Buttons (hide when connecting)
         if (!isConnecting) {
-            this.drawButton(ctx, this.loginBoxCenter - 80, 301, "Login");
-            this.drawButton(ctx, this.loginBoxCenter + 80, 301, "Cancel");
+            this.drawButton(ctx, this.loginBoxCenter - 80, 316, "Login");
+            this.drawButton(ctx, this.loginBoxCenter + 80, 316, "Cancel");
         }
 
         // Help link (only show when not connecting)
@@ -2180,7 +2173,7 @@ export class LoginRenderer {
                 this.fontPlain11,
                 helpText,
                 this.loginBoxX + 180,
-                357,
+                372,
                 0xffffff,
             );
         }

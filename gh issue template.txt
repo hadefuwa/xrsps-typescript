@@ -1,0 +1,10 @@
+Please open a GitHub issue on hadefuwa/xrsps-typescript that:
+
+Has a clear title in the format "Bug: [description]" or "Fix: [description]"
+Documents the symptom (what the user sees)
+Documents the root cause with the exact file path and line number
+Shows the before/after code diff
+Explains WHY the fix works, not just what changed
+Notes any related systems or files that might have the same pattern
+Sets status to closed if it's already fixed, with a comment referencing the commit
+Also add an entry to docs/dev/known-bugs.md in the same format as the existing BUG-001 entry.

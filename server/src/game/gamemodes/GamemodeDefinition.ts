@@ -144,6 +144,7 @@ export interface GamemodeDefinition {
     // === Player Rules ===
     canInteract(player: PlayerState): boolean;
     canInteractWithNpc?(player: PlayerState, npcTypeId: number, option: string): boolean;
+    canInteractWithLoc?(player: PlayerState, locId: number, action: string): boolean;
 
     // === Player Lifecycle ===
     initializePlayer(player: PlayerState): void;

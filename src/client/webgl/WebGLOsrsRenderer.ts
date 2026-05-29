@@ -27,7 +27,7 @@ import {
     sendInteractStop,
     subscribeTick,
 } from "../../network/ServerConnection";
-import { sendLogin } from "../../network/ServerConnection";
+import { sendLogin, sendLocInteract } from "../../network/ServerConnection";
 import { flushPackets } from "../../network/packet";
 import { createTextureArray } from "../../picogl/PicoTexture";
 import { RS_TO_RADIANS } from "../../rs/MathConstants";
@@ -13139,6 +13139,10 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                     for (let actionIdx = 4; actionIdx >= 0; actionIdx--) {
                         const option = resolvedLocType.actions?.[actionIdx];
                         if (!option) continue;
+                        const locId = interactId;
+                        const locX = localX;
+                        const locY = localY;
+                        const locOption = option;
                         menuEntries.push({
                             option,
                             targetId: interactId,
@@ -13148,6 +13152,18 @@ export class WebGLOsrsRenderer extends GameRenderer<WebGLMapSquare> {
                             mapX: localX,
                             mapY: localY,
                             actionIndex: actionIdx,
+                            onClick: (_entry?: any, _evt?: any, ctx?: any) => {
+                                if (ctx?.worldMenuStateDispatch) return;
+                                try {
+                                    sendLocInteract(
+                                        locId,
+                                        { x: locX, y: locY },
+                                        undefined,
+                                        locOption,
+                                    );
+                                } catch {}
+                                this.osrsClient.closeMenu();
+                            },
                         });
                     }
 

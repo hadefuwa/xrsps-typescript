@@ -1,0 +1,21 @@
+I've been working on a OSRS Game Engine for the past 6 months. The reason being I got quite addicted to Leagues (its crack cocaine level) and I haven't really been pleased with the RSPS Leagues available at all. Jagex made a big mistake abandoning it because with AI and the tools to come, people are going to want to take their childhood nostalgia to a whole new level.
+
+The goal is to allow people from all diverse backgrounds to create their own runescape servers. All I care about seeing more flourishing leagues servers that are addicting and the community enjoys it.
+
+Features:
+Playable in Browser: My engine supports playing OSRS via Mobile or Desktop on browser. We use PicoGL Web Rendering. This means you don't have to risk downloading a virus off somebody.
+Supports OSRS latest cache: Developers wont have to spend weeks or days trying to redit a newly released cache, this will work with pretty much any modern cache (however can be supported to old ones too just not worth it.)
+Fully written in Typescript: No use of Java whatsoever to run ANYTHING. This is huge for web developers coming over. This includes both the client and server. Allows you to include any web components too in your coding.
+Pure GPU Rendering: Most developers will struggle to bring such an experience to the GPU because OSRS is very consuming on the hardware.
+WebSockets: Replaced networking layer with my own websocket solution instead of traditional game update server and whatever java networking OSRS uses.
+CS2 VM: All OSRS UI can be executed in pure typescript. I support pretty much most cs2 opcodes and run them internally. Purely cache driven if need be but I also support customizability. I also have supported mobile cs2 scripts. This includes spellbook, all tabs, banking and stuff.
+Full Music / SFX Support: You can listen to music as you go around regions and add your own custom sfx directly from the cache. No more walking into boring dead areas without the best sound tracks playing.
+Map Editor (WIP): Working on a revision resistant map editor where if you modify the map and Jagex updates the cache, you wont lose any progress made on your map.
+Public Server List (Planned): Easily find other servers like Garrys Mod or CS2 and end up decentralizing the client so RSPS community can cluster more
+... And a lot more features I have not included in here
+
+Working on bringing more stuff from the actual game like raids so you can customize stuff. Combat is pretty functional atm (spell casting, using a bow and melee combat.)
+
+I can pretty much work on any custom content or feature as well, just a matter of spending time for it but I'm pretty excited with how it's come along.
+
+Github: https://github.com/xrsps/xrsps-typescript

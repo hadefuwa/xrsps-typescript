@@ -400,7 +400,9 @@ export class PlayerWidgetManager {
         const keys = Array.from(this.entries.values())
             .filter(
                 (entry) =>
-                    entry.modal &&
+                    // Close modal (type 0) AND sidemodal (type 3) interfaces.
+                    // Type 1 = permanent overlays (inventory tab, minimap etc) — never close those.
+                    (entry.modal || entry.type === 3) &&
                     (opts.exceptGroupId === undefined ||
                         entry.groupId !== Math.trunc(opts.exceptGroupId)),
             )

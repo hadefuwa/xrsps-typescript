@@ -44,35 +44,23 @@ export function registerMovementHandlers(router: MessageRouter, services: Messag
         try {
             if (!ctx.player) return;
             if (!ctx.player.canMove()) return;
-            if (!services.canUseAdminTeleport(ctx.player)) {
-                services.queueChatMessage({
-                    messageType: "game",
-                    text: "Only admins can use world map teleports.",
-                    targetPlayerIds: [ctx.player.id],
-                });
-                return;
-            }
             const { to, level } = ctx.payload;
-            const result = services.requestTeleportAction(ctx.player, {
-                x: to.x,
-                y: to.y,
-                level: level ?? ctx.player.level,
-                delayTicks: 0,
-                cooldownTicks: 1,
-                requireCanTeleport: false,
-                rejectIfPending: true,
-                replacePending: false,
-            });
-            if (!result.ok) {
-                if (result.reason === "cooldown") {
-                    services.queueChatMessage({
-                        messageType: "game",
-                        text: "You're already teleporting.",
-                        targetPlayerIds: [ctx.player.id],
-                    });
+            const targetLevel = level ?? ctx.player.level;
+
+            // Clear any sailing world-entity state before teleporting so the client
+            // doesn't render the sailing overlay at the new position.
+            if (ctx.player.worldViewId !== 0) {
+                const SAILING_VARBITS = [19136, 19137, 19122, 19104, 19151, 19153, 19176, 19175, 19118];
+                for (const varbitId of SAILING_VARBITS) {
+                    ctx.player.varps.setVarbitValue(varbitId, 0);
+                    services.queueVarbit(ctx.player.id, varbitId, 0);
                 }
-                return;
+                services.disposeSailingInstance?.(ctx.player);
+                services.removeWorldEntity?.(ctx.player.id, 3426);
+                ctx.player.worldViewId = 0;
             }
+
+            services.teleportPlayer(ctx.player, to.x, to.y, targetLevel);
         } catch (err) { logger.warn("Failed to process teleport request", err); }
     });
 
