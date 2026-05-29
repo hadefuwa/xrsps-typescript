@@ -62,4 +62,62 @@ export function register(registry: IScriptRegistry, services: ScriptServices): v
         return `HP restored to ${player.skillSystem.getHitpointsCurrent()}/${max}`;
     });
 
+    // ::openbank — open the bank interface directly (useful for bot tests)
+    registry.registerCommand("openbank", (event) => {
+        services.banking?.openBank?.(event.player, { mode: "bank" });
+        return "[dev] bank opened";
+    });
+
+    // ::testbank — closed-loop bank deposit+withdraw test. Returns PASS/FAIL.
+    registry.registerCommand("testbank", (event) => {
+        const player = event.player;
+
+        // 1. Clear inventory and give 5 shrimp
+        for (let i = 0; i < 28; i++) {
+            services.inventory.setInventorySlot(player, i, -1, 0);
+        }
+        services.inventory.addItemToInventory(player, 315, 5);
+        services.inventory.snapshotInventory(player);
+
+        // 2. Deposit all inventory to bank
+        const deposited = services.banking?.depositInventoryToBank?.(player);
+        if (!deposited) return "TESTBANK FAIL: depositInventoryToBank returned false";
+
+        // 3. Check bank slot 0 has shrimp (315)
+        const bankEntry = services.banking?.getBankEntryAtClientSlot?.(player, 0);
+        if (!bankEntry || bankEntry.itemId !== 315) {
+            return `TESTBANK FAIL: bank slot 0 = ${bankEntry?.itemId ?? "empty"} (expected 315)`;
+        }
+        if (bankEntry.quantity < 5) {
+            return `TESTBANK FAIL: bank has ${bankEntry.quantity} shrimp (expected 5)`;
+        }
+
+        // 4. Verify inventory is now empty (no shrimp)
+        const invAfterDeposit = services.inventory.getInventoryItems(player);
+        if (invAfterDeposit.some(s => s?.itemId === 315)) {
+            return "TESTBANK FAIL: shrimp still in inventory after deposit";
+        }
+
+        // 5. Withdraw 1 shrimp from bank slot 0
+        const withdrawal = services.banking?.withdrawFromBankSlot?.(player, 0, 1, { noted: false });
+        if (!withdrawal?.ok) {
+            return `TESTBANK FAIL: withdraw failed: ${withdrawal?.message ?? "no result"}`;
+        }
+
+        // 6. Verify inventory now has 1 shrimp
+        const invAfterWithdraw = services.inventory.getInventoryItems(player);
+        const shrimpInInv = invAfterWithdraw.filter(s => s?.itemId === 315).length;
+        if (shrimpInInv !== 1) {
+            return `TESTBANK FAIL: inventory has ${shrimpInInv} shrimp after withdraw (expected 1)`;
+        }
+
+        // 7. Verify bank now has 4 shrimp
+        const bankAfter = services.banking?.getBankEntryAtClientSlot?.(player, 0);
+        if (!bankAfter || bankAfter.quantity !== 4) {
+            return `TESTBANK FAIL: bank has ${bankAfter?.quantity ?? 0} shrimp after withdraw (expected 4)`;
+        }
+
+        return "TESTBANK PASS: deposit and withdraw both work";
+    });
+
 }

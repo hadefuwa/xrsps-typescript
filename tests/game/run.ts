@@ -11,10 +11,12 @@
 import { printResults } from "./framework";
 import { runWidgetCloseTests } from "./scenarios/widget-close.test";
 import { runSettingsPersistTests } from "./scenarios/settings-persist.test";
+import { runBankTests } from "./scenarios/bank.test";
 
 console.log("xRSPS game logic tests\n");
 
 runWidgetCloseTests();
 runSettingsPersistTests();
+runBankTests();
 
 printResults();

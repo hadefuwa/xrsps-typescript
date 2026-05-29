@@ -141,6 +141,43 @@ async function main() {
         console.log(shrimpConsumed ? `[bot] PASS: shrimp consumed! (${countBefore} → ${countAfter})` : `[bot] FAIL: shrimp count unchanged after 5s`);
     }
 
+    // ── Closed-loop bank test ───────────────────────────────────────
+    console.log("[bot] Starting bank deposit+withdraw test (::testbank)...");
+
+    // ::testbank clears inv, gives 5 shrimp, deposits all, withdraws 1.
+    // On success: player ends with exactly 1 shrimp in inventory.
+    // On failure: command returns a TESTBANK FAIL message; inventory won't have 1 shrimp.
+    await page.keyboard.press("Enter");
+    await waitMs(300);
+    await page.keyboard.type("::testbank", { delay: 80 });
+    await page.keyboard.press("Enter");
+
+    // Wait up to 10s for inventory to show exactly 1 shrimp (315)
+    let bankTestPassed = false;
+    try {
+        await page.waitForFunction(
+            () => {
+                const inv = (window as any).xrspsTest?.getInventory() ?? [];
+                const shrimpCount = inv.filter((s: any) => s.itemId === 315).length;
+                return shrimpCount === 1;
+            },
+            { timeout: 10_000 },
+        );
+        bankTestPassed = true;
+    } catch {
+        bankTestPassed = false;
+    }
+
+    const bankFinalInv = await page.evaluate(() => (window as any).xrspsTest?.getInventory() ?? []);
+    const shrimpAfter = bankFinalInv.filter((s: any) => s.itemId === 315).length;
+    const bankFinalBank = await page.evaluate(() => (window as any).xrspsTest?.getBank() ?? []);
+
+    if (bankTestPassed) {
+        console.log(`[bot] PASS: bank deposit+withdraw (inv has ${shrimpAfter} shrimp, bank has ${bankFinalBank.length} slots)`);
+    } else {
+        console.log(`[bot] FAIL: bank deposit+withdraw — inv has ${shrimpAfter} shrimp (expected 1), bank=${JSON.stringify(bankFinalBank.slice(0,3))}`);
+    }
+
     console.log("[bot] Done. Browser stays open. Ctrl+C to quit.");
     await new Promise(() => {});
 }
