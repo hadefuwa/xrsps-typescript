@@ -100,7 +100,7 @@ Each layer was discovered using the closed-loop bot test (`yarn bot:login`). The
 
 ## BUG-003 — Depositing items from bank inventory panel does nothing
 
-**Status:** Fixed in commits `8d06c1c` (deposit), `3fc98a0` and `34e9ffb` (withdraw)  
+**Status:** Fixed in commits `8d06c1c` (deposit), `3fc98a0`, `34e9ffb`, `f312e28` (withdraw)  
 **Severity:** High — core bank deposit and withdraw flows broken  
 **GitHub Issue:** [#13](https://github.com/hadefuwa/xrsps-typescript/issues/13)
 
@@ -128,7 +128,7 @@ const result = event.services.banking?.depositInventoryItemToBank?.(
 
 ### Verified
 `yarn test:game` → "Banking — slot mapping (BUG-003)" suite (19/19 pass).  
-`yarn bot:login` → bank test: sends `::testbank`, polls for exactly 1 shrimp in inventory.
+`yarn bot:login bottest bot123` → `[bot] PASS: bank deposit+withdraw (inv has 1 shrimp, bank has 16 slots)`
 
 ### Related systems
 Any future widget action handlers that call banking/shopping/production methods should always go through `event.services.banking?.`, `event.services.shopping?.`, etc. — never call methods directly on `event.services` unless they are top-level `ScriptServices` members (messaging, variables, skills, inventory, etc.).
@@ -173,7 +173,7 @@ Same `isBankMainWidget = groupId === 12` guard now covers both packet paths. Any
 
 ### Verified
 `yarn test:game` → "Banking — isBankMainWidget guard logic (BUG-003b)" suite (19/19 pass).  
-`yarn bot:login` → bank test: sends `::testbank` (deposit+withdraw), polls for 1 shrimp in inventory.
+`yarn bot:login bottest bot123` → `[bot] PASS: bank deposit+withdraw (inv has 1 shrimp, bank has 16 slots)`
 
 ---
 
