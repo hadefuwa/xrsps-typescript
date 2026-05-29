@@ -100,7 +100,7 @@ Each layer was discovered using the closed-loop bot test (`yarn bot:login`). The
 
 ## BUG-003 — Depositing items from bank inventory panel does nothing
 
-**Status:** Fixed in commits `8d06c1c` (deposit) and `3fc98a0` (withdraw)  
+**Status:** Fixed in commits `8d06c1c` (deposit), `3fc98a0` and `34e9ffb` (withdraw)  
 **Severity:** High — core bank deposit and withdraw flows broken  
 **GitHub Issue:** [#13](https://github.com/hadefuwa/xrsps-typescript/issues/13)
 
@@ -162,8 +162,10 @@ if (!isBankMainWidget && itemId !== undefined && itemId > 0 && hasValidSlot) {
 ### Why the fix works
 Bank main panel clicks (groupId=12) route directly to `handleWidgetActionMessage` → `handleWithdrawOp`, which uses the slot as a **bank slot** correctly. Bank side panel (groupId=15) is unaffected — eating food from inventory while banking still works there because those slots ARE real inventory positions.
 
-### Related systems
-Same guard should be applied to any future widget-action paths that call `queueItemAction` — always verify that `slot` is an inventory slot before dispatching item actions.
+### Related systems / follow-up (commit `34e9ffb`)
+The same guard also needed to be applied to `createWidgetActionHandler` for `widget_action` packets. Right-click operations (Withdraw-1, Withdraw-5, etc.) arrive via `widget_action` (not `if_triggeroplocal`), and without the guard, potions with `inventoryActions[1] = "Drink"` would fire `closeInterruptibleInterfaces` — which, after the BUG-001 fix, now also closes type-3 sidemodal interfaces (including the bank side panel). This is what caused "it just closes the bank."
+
+Same `isBankMainWidget = groupId === 12` guard now covers both packet paths. Any future widget-action paths that call `queueItemAction` should apply the same check.
 
 ---
 
