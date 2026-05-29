@@ -379,6 +379,11 @@ export class ScriptRegistry implements IScriptRegistry {
         const key = makeLocKey(locId, action);
         const handler = this.locHandlers.get(key);
         if (handler) return handler;
+        if (action) {
+            const fallback = makeLocKey(locId, undefined);
+            const locDefault = this.locHandlers.get(fallback);
+            if (locDefault) return locDefault;
+        }
         const actionHandler = this.locActionHandlers.get(normalizeOption(action));
         return actionHandler;
     }

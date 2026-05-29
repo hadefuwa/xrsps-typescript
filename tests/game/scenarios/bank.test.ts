@@ -26,19 +26,45 @@ export function runBankTests(): void {
         it("bank chest Use routes to bank mode, not a generic loc-action fallback", () => {
             const modeForLocAction = (
                 locId: number,
-                action: string,
+                action?: string,
             ): "bank" | "collect" | undefined => {
                 if (!BANK_CHEST_LOC_IDS.includes(locId)) return undefined;
-                if (action === "use") return "bank";
-                if (action === "collect") return "collect";
-                return undefined;
+                return action === "collect" ? "collect" : "bank";
             };
             assertEqual(modeForLocAction(26711, "use"), "bank", "Use should open the bank");
             assertEqual(modeForLocAction(26711, "collect"), "collect", "Collect should open collect");
             assertEqual(
+                modeForLocAction(26711, undefined),
+                "bank",
+                "Missing loc action should still default bank chests to bank mode",
+            );
+            assertEqual(
                 modeForLocAction(29321, "use"),
                 undefined,
                 "Bank-action variants should keep using the generic bank handler",
+            );
+        });
+
+        it("loc-specific default handlers are a fallback when action text is absent", () => {
+            const normalizeOption = (value?: string): string => (value ?? "").trim().toLowerCase();
+            const makeLocKey = (locId: number, action?: string): string =>
+                `${locId}#${normalizeOption(action)}`;
+            const handlers = new Map<string, string>();
+            handlers.set(makeLocKey(26711, undefined), "default-bank-chest-handler");
+
+            const findLocInteraction = (locId: number, action?: string): string | undefined => {
+                const direct = handlers.get(makeLocKey(locId, action));
+                if (direct) return direct;
+                if (action) {
+                    return handlers.get(makeLocKey(locId, undefined));
+                }
+                return undefined;
+            };
+
+            assertEqual(
+                findLocInteraction(26711, "use"),
+                "default-bank-chest-handler",
+                "loc action lookup should fall back to the loc-specific default handler",
             );
         });
     });

@@ -19,12 +19,11 @@ export function registerBankingHandlers(registry: IScriptRegistry, services: Scr
         services.banking?.openBank?.(player, { mode: "bank" });
     });
     for (const locId of BANK_CHEST_LOC_IDS) {
-        registry.registerLocInteraction(locId, ({ player, services }) => {
-            services.banking?.openBank?.(player, { mode: "bank" });
-        }, "use");
-        registry.registerLocInteraction(locId, ({ player, services }) => {
-            services.banking?.openBank?.(player, { mode: "collect" });
-        }, "collect");
+        registry.registerLocInteraction(locId, ({ player, services, action }) => {
+            const normalizedAction = action?.trim().toLowerCase();
+            const mode = normalizedAction === "collect" ? "collect" : "bank";
+            services.banking?.openBank?.(player, { mode });
+        });
     }
 
     registerBankWidgetHandlers(registry, services);
