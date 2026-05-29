@@ -100,8 +100,8 @@ Each layer was discovered using the closed-loop bot test (`yarn bot:login`). The
 
 ## BUG-003 — Depositing items from bank inventory panel does nothing
 
-**Status:** Fixed in commit `8d06c1c`  
-**Severity:** High — core bank deposit flow broken for item-by-item deposits  
+**Status:** Fixed in commits `8d06c1c` (deposit) and `3fc98a0` (withdraw)  
+**Severity:** High — core bank deposit and withdraw flows broken  
 **GitHub Issue:** [#13](https://github.com/hadefuwa/xrsps-typescript/issues/13)
 
 ### Symptom
@@ -128,6 +128,42 @@ const result = event.services.banking?.depositInventoryItemToBank?.(
 
 ### Related systems
 Any future widget action handlers that call banking/shopping/production methods should always go through `event.services.banking?.`, `event.services.shopping?.`, etc. — never call methods directly on `event.services` unless they are top-level `ScriptServices` members (messaging, variables, skills, inventory, etc.).
+
+---
+
+## BUG-003b — Bank item left-click fires eat/bury instead of withdraw
+
+**Status:** Fixed in commit `3fc98a0`  
+**Severity:** High — left-clicking consumables/bones in bank consumes the wrong inventory item  
+**GitHub Issue:** [#13](https://github.com/hadefuwa/xrsps-typescript/issues/13)
+
+### Symptom
+Left-clicking a food item or bones in the bank panel does nothing visible (or silently removes an inventory item). Right-clicking and choosing "Withdraw-1" works, but the default left-click action does not withdraw.
+
+### Root cause
+`createIfTriggerOpLocalHandler` in `server/src/network/handlers/binaryMessageHandlers.ts` (line 150) checked `inventoryActions[opcodeParam - 1]` for all `if_triggeroplocal` packets. For bank main panel items (groupId=12), the `slot` value is a **bank slot index** (0, 1, 2 …), not an inventory slot index. When a food item in the bank is left-clicked (op=1) and `inventoryActions[0] = "Eat"`, the handler:
+1. Calls `queueItemAction(option="eat", slot=bank_slot_index)` — correct option, wrong slot
+2. On success, calls `consumeItem(player, bank_slot_index)` — removes inventory item at that index instead of withdrawing from bank
+
+For non-food items (most equipment, stackables), `inventoryActions[0]` is typically null or has no registered handler, so they fell through to withdrawal correctly. Only consumables and buriables were affected.
+
+**File:** `server/src/network/handlers/binaryMessageHandlers.ts` line 150
+
+### Fix
+```ts
+// Before
+if (itemId !== undefined && itemId > 0 && hasValidSlot) {
+
+// After
+const isBankMainWidget = groupId === 12;
+if (!isBankMainWidget && itemId !== undefined && itemId > 0 && hasValidSlot) {
+```
+
+### Why the fix works
+Bank main panel clicks (groupId=12) route directly to `handleWidgetActionMessage` → `handleWithdrawOp`, which uses the slot as a **bank slot** correctly. Bank side panel (groupId=15) is unaffected — eating food from inventory while banking still works there because those slots ARE real inventory positions.
+
+### Related systems
+Same guard should be applied to any future widget-action paths that call `queueItemAction` — always verify that `slot` is an inventory slot before dispatching item actions.
 
 ---
 
