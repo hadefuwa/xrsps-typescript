@@ -89,7 +89,12 @@ function createWidgetActionHandler(services: BinaryHandlerExtServices): MessageH
         if (groupId === 219) {
             services.getWidgetDialogHandler().handleDialogOptionClick(ctx.ws, player.id, childId);
         } else {
-            if (payload.itemId !== undefined && payload.itemId > 0 && hasValidSlot && opId >= 1) {
+            // Bank main panel (group 12) slots are bank positions, not inventory slots.
+            // Skipping item-action interception here prevents eat/drink/bury handlers
+            // from firing with a bank-slot index, which would consume the wrong item
+            // and (via closeInterruptibleInterfaces) close the bank side panel.
+            const isBankMainWidget = groupId === 12;
+            if (!isBankMainWidget && payload.itemId !== undefined && payload.itemId > 0 && hasValidSlot && opId >= 1) {
                 let actions: (string | null | undefined)[] | undefined;
                 const customItem = CustomItemRegistry.get(payload.itemId);
                 if (customItem?.definition?.objType?.inventoryActions) {
