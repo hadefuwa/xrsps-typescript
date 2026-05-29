@@ -3,6 +3,11 @@ import type { BankingProvider } from "./BankingProvider";
 import { registerBankWidgetHandlers } from "./bankWidgets";
 import { WidgetGroup, BankMainChild, BankSideChild, slotToTabIndex, BankLimits, TAB_SLOT_OFFSET } from "./bankConstants";
 
+const BANK_CHEST_LOC_IDS = [
+    2693, 4483, 10562, 14886, 19051, 21301, 26707, 26711, 28594, 28595, 28816, 28861, 30087,
+    30267, 30796, 30926, 30989, 34343,
+] as const;
+
 export function registerBankingHandlers(registry: IScriptRegistry, services: ScriptServices): void {
     registry.registerNpcAction("bank", ({ player, services }) => {
         services.banking?.openBank?.(player, { mode: "bank" });
@@ -13,6 +18,14 @@ export function registerBankingHandlers(registry: IScriptRegistry, services: Scr
     registry.registerLocAction("bank", ({ player, services }) => {
         services.banking?.openBank?.(player, { mode: "bank" });
     });
+    for (const locId of BANK_CHEST_LOC_IDS) {
+        registry.registerLocInteraction(locId, ({ player, services }) => {
+            services.banking?.openBank?.(player, { mode: "bank" });
+        }, "use");
+        registry.registerLocInteraction(locId, ({ player, services }) => {
+            services.banking?.openBank?.(player, { mode: "collect" });
+        }, "collect");
+    }
 
     registerBankWidgetHandlers(registry, services);
 

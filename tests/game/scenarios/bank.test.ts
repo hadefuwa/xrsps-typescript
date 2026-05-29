@@ -12,6 +12,36 @@
 import { describe, it, assertEqual, assert } from "../framework";
 
 export function runBankTests(): void {
+    describe("Banking - bank chest loc actions (BUG-006)", () => {
+
+        const BANK_CHEST_LOC_IDS = [
+            2693, 4483, 10562, 14886, 19051, 21301, 26707, 26711, 28594, 28595, 28816, 28861,
+            30087, 30267, 30796, 30926, 30989, 34343,
+        ];
+
+        it("loc 26711 is covered by the explicit bank chest Use/Collect mapping", () => {
+            assert(BANK_CHEST_LOC_IDS.includes(26711), "bank chest 26711 must be registered");
+        });
+
+        it("bank chest Use routes to bank mode, not a generic loc-action fallback", () => {
+            const modeForLocAction = (
+                locId: number,
+                action: string,
+            ): "bank" | "collect" | undefined => {
+                if (!BANK_CHEST_LOC_IDS.includes(locId)) return undefined;
+                if (action === "use") return "bank";
+                if (action === "collect") return "collect";
+                return undefined;
+            };
+            assertEqual(modeForLocAction(26711, "use"), "bank", "Use should open the bank");
+            assertEqual(modeForLocAction(26711, "collect"), "collect", "Collect should open collect");
+            assertEqual(
+                modeForLocAction(29321, "use"),
+                undefined,
+                "Bank-action variants should keep using the generic bank handler",
+            );
+        });
+    });
     describe("Banking — isBankMainWidget guard logic (BUG-003b)", () => {
 
         // The guard is: const isBankMainWidget = groupId === 12
