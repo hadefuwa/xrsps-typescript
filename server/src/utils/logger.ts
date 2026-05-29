@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import util from "util";
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
@@ -34,6 +36,33 @@ function parseLevel(): LogLevel {
 const MIN_LEVEL: LogLevel = parseLevel();
 const JSON_MODE =
     envBool("LOG_JSON") || env("LOG_FORMAT").toLowerCase() === "json" || envBool("AGENT_LOG");
+const LOG_FILE_PATH = env("LOG_FILE");
+let logFileStream: fs.WriteStream | undefined;
+
+function getLogFileStream(): fs.WriteStream | undefined {
+    if (!LOG_FILE_PATH) return undefined;
+    if (logFileStream) return logFileStream;
+    try {
+        const resolvedPath = path.resolve(LOG_FILE_PATH);
+        fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
+        logFileStream = fs.createWriteStream(resolvedPath, { flags: "a" });
+        logFileStream.on("error", (err) => {
+            console.error(`[logger] failed writing log file "${resolvedPath}"`, err);
+        });
+        return logFileStream;
+    } catch (err) {
+        console.error(`[logger] failed to initialize log file "${LOG_FILE_PATH}"`, err);
+        return undefined;
+    }
+}
+
+function writeLogFileLine(line: string): void {
+    const stream = getLogFileStream();
+    if (!stream) return;
+    try {
+        stream.write(`${line}\n`);
+    } catch {}
+}
 
 // Optional category filters: comma‑separated list
 function parseList(v: string): string[] {
@@ -91,6 +120,7 @@ function emit(level: Exclude<LogLevel, "silent">, args: unknown[]): void {
             out.args = args;
         }
         const line = JSON.stringify(out);
+        writeLogFileLine(line);
         if (level === "error") console.error(line);
         else if (level === "warn") console.warn(line);
         else console.log(line);
@@ -98,6 +128,17 @@ function emit(level: Exclude<LogLevel, "silent">, args: unknown[]): void {
     }
 
     const prefix = `[${ts()}] [${level.toUpperCase()}]`;
+    let formatted = "";
+    try {
+        formatted = util.format(...args);
+    } catch {
+        formatted = args
+            .map((arg) =>
+                arg != null && arg.constructor === String ? String(arg) : util.inspect(arg),
+            )
+            .join(" ");
+    }
+    writeLogFileLine(`${prefix} ${formatted}`);
     if (level === "error") console.error(prefix, ...args);
     else if (level === "warn") console.warn(prefix, ...args);
     else console.log(prefix, ...args);
