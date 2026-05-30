@@ -29,9 +29,9 @@ This was inconsistent with the rest of the game, because we already have account
 
 Before the fix, persistent varcs were handled only on the client:
 
-- [BrowserVarcsPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/BrowserVarcsPersistence.ts:59) loaded varcs from `window.localStorage`
-- [BrowserVarcsPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/BrowserVarcsPersistence.ts:80) saved varcs back to `window.localStorage`
-- [OsrsClient.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/OsrsClient.ts:3450) flushed persistent varcs locally
+- `src/client/BrowserVarcsPersistence.ts` loaded varcs from `window.localStorage`
+- `src/client/BrowserVarcsPersistence.ts` saved varcs back to `window.localStorage`
+- `src/client/OsrsClient.ts` flushed persistent varcs locally
 
 The server never saw most of those settings, so it could not store them in SQLite and could not restore them on login.
 
@@ -59,42 +59,42 @@ This makes the account database the authoritative source for account-scoped pers
 
 ### Client
 
-- [OsrsClient.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/OsrsClient.ts:3443)
+- `src/client/OsrsClient.ts`
   Dirty tracking, flush, and upload of persistent varcs.
 
-- [BrowserVarcsPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/BrowserVarcsPersistence.ts:59)
+- `src/client/BrowserVarcsPersistence.ts`
   Browser-side cache layer using `localStorage`.
 
-- [VarManager.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/rs/config/vartype/VarManager.ts:139)
+- `src/rs/config/vartype/VarManager.ts`
   Persistent varc snapshot/restore logic.
 
-- [ServerConnection.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/network/ServerConnection.ts:2609)
+- `src/network/ServerConnection.ts`
   Sends the `persistent_varcs` payload to the server.
 
-- [ClientBinaryEncoder.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/network/packet/ClientBinaryEncoder.ts:489)
+- `src/network/packet/ClientBinaryEncoder.ts`
   Encodes the new persistent-varcs packet.
 
-- [ServerBinaryDecoder.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/network/packet/ServerBinaryDecoder.ts:544)
+- `src/network/packet/ServerBinaryDecoder.ts`
   Reads persistent varcs from the login handshake.
 
 ### Server
 
-- [player.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/game/player.ts:173)
+- `server/src/game/player.ts`
   `PlayerPersistentVars` now includes `persistentVarcs`.
 
-- [PlayerStateSerializer.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/game/state/PlayerStateSerializer.ts:16)
+- `server/src/game/state/PlayerStateSerializer.ts`
   Exports/imports `persistentVarcs` in the player snapshot.
 
-- [PlayerPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/game/state/PlayerPersistence.ts:200)
+- `server/src/game/state/PlayerPersistence.ts`
   Sanitizes and merges persisted varcs into saved player state.
 
-- [persistentVarcsHandler.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/network/handlers/persistentVarcsHandler.ts:1)
+- `server/src/network/handlers/persistentVarcsHandler.ts`
   Accepts persistent varcs uploads from the client.
 
-- [LoginHandshakeService.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/network/LoginHandshakeService.ts:306)
+- `server/src/network/LoginHandshakeService.ts`
   Includes saved persistent varcs in the login handshake payload.
 
-- [ServerBinaryEncoder.ts](/c:/Users/Hamed/Documents/xrsps-typescript/server/src/network/packet/ServerBinaryEncoder.ts:223)
+- `server/src/network/packet/ServerBinaryEncoder.ts`
   Encodes persistent varcs into the handshake packet.
 
 ---
@@ -117,9 +117,9 @@ Not every client preference uses persistent varcs.
 
 Some systems still have their own browser-only persistence wrappers, for example:
 
-- [BrowserInteractHighlightPluginPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/plugins/interacthighlight/BrowserInteractHighlightPluginPersistence.ts:3)
-- [BrowserTileMarkersPluginPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/plugins/tilemarkers/BrowserTileMarkersPluginPersistence.ts:3)
-- [BrowserSidebarPersistence.ts](/c:/Users/Hamed/Documents/xrsps-typescript/src/client/sidebar/BrowserSidebarPersistence.ts:3)
+- `src/client/plugins/interacthighlight/BrowserInteractHighlightPluginPersistence.ts`
+- `src/client/plugins/tilemarkers/BrowserTileMarkersPluginPersistence.ts`
+- `src/client/sidebar/BrowserSidebarPersistence.ts`
 
 Those are still separate decisions:
 
@@ -146,7 +146,7 @@ The important change is that account-scoped persistent varcs are no longer brows
 
 Regression coverage was added in:
 
-- [settings-persist.test.ts](/c:/Users/Hamed/Documents/xrsps-typescript/tests/game/scenarios/settings-persist.test.ts:30)
+- `tests/game/scenarios/settings-persist.test.ts`
 
 Current checks used for this fix:
 
@@ -161,4 +161,3 @@ yarn test:game
 ## Related Issue
 
 - GitHub issue: `#26` — settings UI preferences do not persist to player database
-
