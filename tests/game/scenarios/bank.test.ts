@@ -67,6 +67,36 @@ export function runBankTests(): void {
                 "loc action lookup should fall back to the loc-specific default handler",
             );
         });
+
+        it("a loc option named Use still resolves as object option 1 when actionIndex=0", () => {
+            const inferOpcode = (
+                option: string,
+                targetType: "loc",
+                actionIndex?: number,
+            ): number => {
+                if (targetType === "loc") {
+                    switch (actionIndex) {
+                        case 0:
+                            return 3;
+                        case 1:
+                            return 4;
+                        case 2:
+                            return 5;
+                        case 3:
+                            return 6;
+                        case 4:
+                            return 1001;
+                    }
+                }
+                return option.toLowerCase() === "use" ? 1 : 0;
+            };
+
+            assertEqual(
+                inferOpcode("Use", "loc", 0),
+                3,
+                "manual left-click Use on a bank chest must map to object option 1, not item-use",
+            );
+        });
     });
     describe("Banking — isBankMainWidget guard logic (BUG-003b)", () => {
 

@@ -110,6 +110,69 @@ export function normalizeMenuEntries(entries: SimpleMenuEntry[]): SimpleMenuEntr
         const targetType = row.targetType;
         const actionIndex = row.actionIndex;
 
+        if (targetType === MenuTargetType.NPC) {
+            switch (actionIndex) {
+                case 0:
+                    return MenuOpcode.NpcFirstOption;
+                case 1:
+                    return MenuOpcode.NpcSecondOption;
+                case 2:
+                    return MenuOpcode.NpcThirdOption;
+                case 3:
+                    return MenuOpcode.NpcFourthOption;
+                case 4:
+                    return MenuOpcode.NpcFifthOption;
+            }
+        }
+        if (targetType === MenuTargetType.LOC) {
+            switch (actionIndex) {
+                case 0:
+                    return MenuOpcode.GameObjectFirstOption;
+                case 1:
+                    return MenuOpcode.GameObjectSecondOption;
+                case 2:
+                    return MenuOpcode.GameObjectThirdOption;
+                case 3:
+                    return MenuOpcode.GameObjectFourthOption;
+                case 4:
+                    return MenuOpcode.GameObjectFifthOption;
+            }
+        }
+        if (targetType === MenuTargetType.OBJ) {
+            switch (actionIndex) {
+                case 0:
+                    return MenuOpcode.GroundItemFirstOption;
+                case 1:
+                    return MenuOpcode.GroundItemSecondOption;
+                case 2:
+                    return MenuOpcode.GroundItemThirdOption;
+                case 3:
+                    return MenuOpcode.GroundItemFourthOption;
+                case 4:
+                    return MenuOpcode.GroundItemFifthOption;
+            }
+        }
+        if (targetType === MenuTargetType.PLAYER) {
+            switch (actionIndex) {
+                case 0:
+                    return MenuOpcode.PlayerFirstOption;
+                case 1:
+                    return MenuOpcode.PlayerSecondOption;
+                case 2:
+                    return MenuOpcode.PlayerThirdOption;
+                case 3:
+                    return MenuOpcode.PlayerFourthOption;
+                case 4:
+                    return MenuOpcode.PlayerFifthOption;
+                case 5:
+                    return MenuOpcode.PlayerSixthOption;
+                case 6:
+                    return MenuOpcode.PlayerSeventhOption;
+                case 7:
+                    return MenuOpcode.PlayerEighthOption;
+            }
+        }
+
         if (action === MenuAction.WalkHere) return MenuOpcode.WalkHere;
         if (action === MenuAction.Cancel) return MenuOpcode.Cancel;
         if (action === MenuAction.Examine) {
@@ -152,75 +215,7 @@ export function normalizeMenuEntries(entries: SimpleMenuEntry[]): SimpleMenuEntr
                     return MenuOpcode.UseItem;
             }
         }
-        if (targetType === MenuTargetType.NPC) {
-            switch (actionIndex) {
-                case 0:
-                    return MenuOpcode.NpcFirstOption;
-                case 1:
-                    return MenuOpcode.NpcSecondOption;
-                case 2:
-                    return MenuOpcode.NpcThirdOption;
-                case 3:
-                    return MenuOpcode.NpcFourthOption;
-                case 4:
-                    return MenuOpcode.NpcFifthOption;
-                default:
-                    return MenuOpcode.NpcFirstOption;
-            }
-        }
-        if (targetType === MenuTargetType.LOC) {
-            switch (actionIndex) {
-                case 0:
-                    return MenuOpcode.GameObjectFirstOption;
-                case 1:
-                    return MenuOpcode.GameObjectSecondOption;
-                case 2:
-                    return MenuOpcode.GameObjectThirdOption;
-                case 3:
-                    return MenuOpcode.GameObjectFourthOption;
-                case 4:
-                    return MenuOpcode.GameObjectFifthOption;
-                default:
-                    return MenuOpcode.GameObjectFirstOption;
-            }
-        }
-        if (targetType === MenuTargetType.OBJ) {
-            switch (actionIndex) {
-                case 0:
-                    return MenuOpcode.GroundItemFirstOption;
-                case 1:
-                    return MenuOpcode.GroundItemSecondOption;
-                case 2:
-                    return MenuOpcode.GroundItemThirdOption;
-                case 3:
-                    return MenuOpcode.GroundItemFourthOption;
-                case 4:
-                    return MenuOpcode.GroundItemFifthOption;
-                default:
-                    return MenuOpcode.GroundItemFirstOption;
-            }
-        }
         if (targetType === MenuTargetType.PLAYER) {
-            if (typeof actionIndex === "number" && actionIndex >= 0 && actionIndex <= 7) {
-                switch (actionIndex) {
-                    case 0:
-                        return MenuOpcode.PlayerFirstOption;
-                    case 1:
-                        return MenuOpcode.PlayerSecondOption;
-                    case 2:
-                        return MenuOpcode.PlayerThirdOption;
-                    case 3:
-                        return MenuOpcode.PlayerFourthOption;
-                    case 4:
-                        return MenuOpcode.PlayerFifthOption;
-                    case 5:
-                        return MenuOpcode.PlayerSixthOption;
-                    case 6:
-                        return MenuOpcode.PlayerSeventhOption;
-                    case 7:
-                        return MenuOpcode.PlayerEighthOption;
-                }
-            }
             switch (action) {
                 case MenuAction.Follow:
                     return MenuOpcode.PlayerThirdOption;
