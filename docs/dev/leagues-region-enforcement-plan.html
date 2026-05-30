@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leagues V — Region Enforcement Implementation Plan</title>
+<style>
+  :root {
+    --bg: #0e1117;
+    --card: #161b24;
+    --border: #2a3142;
+    --accent: #e8a84b;
+    --accent2: #5b9cf6;
+    --green: #3fb950;
+    --red: #f85149;
+    --yellow: #d29922;
+    --text: #cdd9e5;
+    --muted: #768390;
+    --code-bg: #1c2333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    padding: 2rem;
+  }
+
+  header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 1.8rem;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  header p {
+    color: var(--muted);
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .badge-missing  { background: #3f1a1a; color: var(--red); border: 1px solid var(--red); }
+  .badge-exists   { background: #1a3a1f; color: var(--green); border: 1px solid var(--green); }
+  .badge-new      { background: #1a2a3f; color: var(--accent2); border: 1px solid var(--accent2); }
+  .badge-edit     { background: #3f3010; color: var(--yellow); border: 1px solid var(--yellow); }
+
+  h2 {
+    font-size: 1.2rem;
+    color: var(--accent2);
+    margin: 2rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin: 1.4rem 0 0.5rem;
+  }
+
+  p { margin-bottom: 0.8rem; }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+  li { margin-bottom: 0.3rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0.6rem 0 1rem;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  code { font-family: "Cascadia Code", "Fira Code", Consolas, monospace; }
+
+  pre code { color: #cdd9e5; }
+
+  .kw  { color: #cb7cf0; }  /* keyword */
+  .fn  { color: #79c0ff; }  /* function */
+  .str { color: #a5d6ff; }  /* string */
+  .num { color: #f2cc60; }  /* number */
+  .cm  { color: #8b949e; font-style: italic; }  /* comment */
+  .tp  { color: #ff7b72; }  /* type */
+
+  .file-path {
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: var(--accent2);
+    background: var(--code-bg);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-weight: 800;
+    font-size: 0.8rem;
+    margin-right: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+
+  .step-header strong { font-size: 0.98rem; }
+
+  .warn {
+    background: #2d2000;
+    border: 1px solid var(--yellow);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin: 0.8rem 0;
+    font-size: 0.88rem;
+    color: #e3b341;
+  }
+
+  .info {
+    background: #0d1f33;
+    border: 1px solid var(--accent2);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin: 0.8rem 0;
+    font-size: 0.88rem;
+    color: #9dc4f0;
+  }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.6rem 0;
+    font-size: 0.85rem;
+  }
+
+  .flow-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+
+  .region-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 0.6rem 0 1rem;
+  }
+  .region-table th {
+    text-align: left;
+    padding: 6px 10px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+  }
+  .region-table td {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .region-table tr:nth-child(even) td { background: #111620; }
+
+  .toc { margin-bottom: 2rem; }
+  .toc a { color: var(--accent2); text-decoration: none; font-size: 0.9rem; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li { margin-bottom: 0.2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔️ Leagues V — Region Enforcement</h1>
+  <p>Implementation Plan · xrsps-typescript · May 2026</p>
+</header>
+
+<!-- TOC -->
+<nav class="toc card">
+  <div class="card-title">Contents</div>
+  <ol>
+    <li><a href="#overview">Overview &amp; Current Gap</a></li>
+    <li><a href="#architecture">How It Will Work (Architecture)</a></li>
+    <li><a href="#phase1">Phase 1 — Build Map&lt;osrsRegionId, leagueAreaId&gt;</a></li>
+    <li><a href="#phase2">Phase 2 — Path Truncation in continueWalkToDestination()</a></li>
+    <li><a href="#phase3">Phase 3 — Teleport-Back in onPlayerTick()</a></li>
+    <li><a href="#phase4">Phase 4 — Client Map Graying (Out of Scope)</a></li>
+    <li><a href="#always-accessible">Always-Accessible Zones</a></li>
+    <li><a href="#testing">Wire Up &amp; Test</a></li>
+    <li><a href="#edgecases">Edge Cases to Handle</a></li>
+    <li><a href="#nextsteps">Next Steps</a></li>
+    <li><a href="#files">Files Changed Summary</a></li>
+  </ol>
+</nav>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <h2>1. Overview &amp; Current Gap</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">✅ What already exists</div>
+      <ul>
+        <li><code>isLeagueAreaUnlocked(player, regionId)</code> — checks the 6 varbit unlock slots</li>
+        <li><code>tryUnlockLeagueArea(player, ...)</code> — records an unlock via the widget</li>
+        <li>6 varbit slots (<code>VARBIT_LEAGUE_AREA_SELECTION_0–5</code>) persisted per player</li>
+        <li>New players default to Misthalin (slot 0 = 1) in <code>initializePlayer</code></li>
+        <li><code>onPlayerTick</code> hook called every 600 ms per player</li>
+        <li>All 11 selectable areas named with their <code>regionId</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ What is missing (why you can walk anywhere)</div>
+      <ul>
+        <li>No mapping from OSRS 64x64 Region IDs to League Area IDs</li>
+        <li>No enforcement — pathfinding allows walking anywhere</li>
+        <li>No fallback teleport-back when a player bypasses pathfinding (e.g. teleports)</li>
+        <li>No home location defined for fallback teleport (using Edgeville)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info">
+    The unlock data is already being saved and loaded correctly. We only need to <strong>read</strong> it and act on the player's Region ID when they move or teleport.
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <h2>2. How It Will Work (Architecture)</h2>
+
+  <p>The OSRS map is divided into 64x64 chunks known as Region IDs, calculated as <code>((x >> 6) &lt;&lt; 8) | (y >> 6)</code>. Rather than drawing arbitrary rectangles, we map these exact OSRS Region IDs to League Area IDs (e.g., Lumbridge's Region ID 12850 maps to Misthalin's League Area ID 1). This perfectly matches the Jagex engine architecture and handles surface and underground (dungeons) elegantly.</p>
+
+  <p>Enforcement occurs in two layers:</p>
+
+  <div class="flow">
+    <div class="flow-box">Path Request</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box"><code>continueWalkToDestination()</code></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">Truncates path at border of locked regions</div>
+  </div>
+  <div class="flow" style="margin-top:0">
+    <div class="flow-box">600 ms tick</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box"><code>onPlayerTick</code></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box">Teleport bypass catch (teleports to Edgeville)</div>
+  </div>
+
+  <h3>New file created</h3>
+  <p><span class="file-path">server/gamemodes/leagues-v/leagueRegionMap.ts</span> <span class="badge badge-new">NEW FILE</span></p>
+  <p>Contains the <code>osrsRegionId</code> &rarr; <code>leagueAreaId</code> mapping.</p>
+
+  <h3>Files edited</h3>
+  <p><span class="file-path">server/entity/player/PlayerManager.ts</span> <span class="badge badge-edit">EDIT</span> — add path truncation</p>
+  <p><span class="file-path">server/gamemodes/leagues-v/index.ts</span> <span class="badge badge-edit">EDIT</span> — add fallback teleport logic to <code>onPlayerTick</code></p>
+</section>
+
+<!-- PHASE 1 -->
+<section id="phase1">
+  <h2>3. Phase 1 — Build Map&lt;osrsRegionId, leagueAreaId&gt;</h2>
+
+  <p>We will construct a lookup Map for the ~500–1000 OSRS Region IDs. A simple lookup function will translate any game coordinate to its League Area.</p>
+
+  <div class="warn">
+    <strong>First: try extracting from cache.</strong> The <code>region_data</code> DB table already referenced in <code>leagueWidgets.ts</code> (DB column ID <code>335872</code>) may contain the full OSRS Region ID → League Area ID mapping. Write a <code>scripts/cache/dump-league-regions.ts</code> script to dump all rows — if it works, the map populates automatically and never needs manual maintenance. Fall back to manual construction only if the data isn't there.
+  </div>
+
+  <div class="info">
+    Because this uses exact 64x64 chunks, underground dungeons (like Revenant Caves at Y~10048) get completely distinct region IDs from the surface. This ensures that a locked dungeon surface correctly blocks the dungeon itself, with no special case logic.
+  </div>
+
+  <h3>Code structure</h3>
+<pre><code><span class="cm">// server/gamemodes/leagues-v/leagueRegionMap.ts</span>
+
+<span class="cm">/** Maps OSRS 64x64 Region ID → Leagues V Area ID. */</span>
+<span class="kw">export const</span> <span class="fn">LEAGUE_REGION_MAP</span>: <span class="tp">ReadonlyMap</span>&lt;<span class="tp">number</span>, <span class="tp">number</span>&gt; = <span class="kw">new</span> <span class="fn">Map</span>([
+    <span class="cm">// Misthalin (Area ID: 1)</span>
+    [<span class="num">12850</span>, <span class="num">1</span>], <span class="cm">// Lumbridge</span>
+    [<span class="num">12851</span>, <span class="num">1</span>], <span class="cm">// Lumbridge Swamp</span>
+    [<span class="num">12594</span>, <span class="num">1</span>], <span class="cm">// Edgeville</span>
+    <span class="cm">// Asgarnia (Area ID: 3)</span>
+    [<span class="num">11828</span>, <span class="num">3</span>], <span class="cm">// Falador</span>
+    <span class="cm">// ... ~500 entries</span>
+]);
+
+<span class="kw">export function</span> <span class="fn">getOsrsRegionId</span>(x: <span class="tp">number</span>, y: <span class="tp">number</span>): <span class="tp">number</span> {
+    <span class="kw">return</span> ((x >> <span class="num">6</span>) &lt;&lt; <span class="num">8</span>) | (y >> <span class="num">6</span>);
+}
+
+<span class="kw">export function</span> <span class="fn">getLeagueAreaIdForTile</span>(x: <span class="tp">number</span>, y: <span class="tp">number</span>): <span class="tp">number</span> {
+    <span class="kw">const</span> osrsRegionId = <span class="fn">getOsrsRegionId</span>(x, y);
+    <span class="kw">return</span> LEAGUE_REGION_MAP.<span class="fn">get</span>(osrsRegionId) ?? <span class="num">0</span>;
+}
+</code></pre>
+</section>
+
+<!-- PHASE 2 -->
+<section id="phase2">
+  <h2>4. Phase 2 — Path Truncation</h2>
+
+  <p>To recreate the authentic OSRS feel, players walk up to the region border and stop rather than being bounced back. We post-process the BFS path result in <code>continueWalkToDestination()</code> — but critically, <strong>league logic must not be imported into the engine</strong>. Instead, we add one optional hook to <code>GamemodeDefinition</code> that the engine calls blindly. The Leagues V gamemode implements it; the vanilla gamemode ignores it.</p>
+
+  <div class="warn">
+    Do <strong>not</strong> import <code>getLeagueAreaIdForTile</code> or <code>isLeagueAreaUnlocked</code> directly into <code>PlayerManager.ts</code>. That would couple a core engine file to a specific gamemode — the wrong dependency direction.
+  </div>
+
+  <h3>Step 1 — Add hook to GamemodeDefinition</h3>
+<pre><code><span class="cm">// server/src/game/gamemodes/GamemodeDefinition.ts</span>
+
+<span class="cm">// Add this optional method to the GamemodeDefinition interface:</span>
+<span class="fn">filterPathSteps</span>?(player: <span class="tp">PlayerState</span>, steps: { x: <span class="tp">number</span>; y: <span class="tp">number</span> }[]): { x: <span class="tp">number</span>; y: <span class="tp">number</span> }[];
+</code></pre>
+
+  <h3>Step 2 — Call the hook in PlayerManager</h3>
+<pre><code><span class="cm">// server/src/game/PlayerManager.ts -> continueWalkToDestination()</span>
+<span class="cm">// After findPathSteps() returns res.steps, before applying to actor:</span>
+
+<span class="kw">const</span> filtered = <span class="kw">this</span>.gamemode.<span class="fn">filterPathSteps</span>?.(player, res.steps) ?? res.steps;
+player.<span class="fn">setPathPreservingWalkDestination</span>(filtered, shouldRun);
+</code></pre>
+
+  <h3>Step 3 — Implement in LeaguesVGamemode</h3>
+<pre><code><span class="cm">// server/gamemodes/leagues-v/index.ts</span>
+
+<span class="fn">filterPathSteps</span>(player: <span class="tp">PlayerState</span>, steps: { x: <span class="tp">number</span>; y: <span class="tp">number</span> }[]): { x: <span class="tp">number</span>; y: <span class="tp">number</span> }[] {
+    <span class="kw">if</span> (!<span class="fn">isLeagueWorld</span>(player) || <span class="kw">this</span>.<span class="fn">isTutorialActive</span>(player)) <span class="kw">return</span> steps;
+    <span class="kw">const</span> out: { x: <span class="tp">number</span>; y: <span class="tp">number</span> }[] = [];
+    <span class="kw">for</span> (<span class="kw">const</span> step <span class="kw">of</span> steps) {
+        <span class="kw">const</span> areaId = <span class="fn">getLeagueAreaIdForTile</span>(step.x, step.y);
+        <span class="kw">if</span> (areaId !== <span class="num">0</span> && !<span class="fn">isLeagueAreaUnlocked</span>(player, areaId) && !<span class="fn">isAlwaysAccessible</span>(step.x, step.y)) {
+            <span class="kw">break</span>; <span class="cm">// stop at first locked step — player walks to border</span>
+        }
+        out.<span class="fn">push</span>(step);
+    }
+    <span class="kw">return</span> out;
+}
+</code></pre>
+</section>
+
+<!-- PHASE 3 -->
+<section id="phase3">
+  <h2>5. Phase 3 — Teleport-Back in onPlayerTick()</h2>
+
+  <p>Path truncation prevents walking into locked regions, but players can still bypass paths via teleports, portals, or rubbing amulets. The <code>onPlayerTick</code> logic acts as a safety net: if a player lands in a locked region, bounce them to Edgeville. Edgeville is always safe to use as the fallback because it sits inside Misthalin — the region every player has unlocked by default.</p>
+
+<pre><code><span class="cm">// server/gamemodes/leagues-v/index.ts</span>
+
+<span class="kw">const</span> HOME_LOCATION = { x: <span class="num">3087</span>, y: <span class="num">3492</span>, level: <span class="num">0</span> }; <span class="cm">// Edgeville bank</span>
+<span class="kw">private</span> regionEnforcementCooldown = <span class="kw">new</span> <span class="fn">Map</span>&lt;<span class="tp">number</span>, <span class="tp">number</span>&gt;();
+
+<span class="kw">private</span> <span class="fn">enforceRegionAccess</span>(player: <span class="tp">PlayerState</span>, currentTick: <span class="tp">number</span>): <span class="tp">void</span> {
+    <span class="kw">if</span> (!<span class="fn">isLeagueWorld</span>(player) || <span class="kw">this</span>.<span class="fn">isTutorialActive</span>(player)) <span class="kw">return</span>;
+
+    <span class="kw">const</span> { tileX, tileY } = player;
+
+    <span class="kw">if</span> (<span class="fn">isAlwaysAccessible</span>(tileX, tileY)) <span class="kw">return</span>;
+
+    <span class="kw">const</span> areaId = <span class="fn">getLeagueAreaIdForTile</span>(tileX, tileY);
+    <span class="kw">if</span> (areaId === <span class="num">0</span>) <span class="kw">return</span>; <span class="cm">// unmapped tile (instances, sea, etc.) — allow</span>
+
+    <span class="kw">if</span> (<span class="fn">isLeagueAreaUnlocked</span>(player, areaId)) <span class="kw">return</span>;
+
+    <span class="kw">const</span> lastTick = <span class="kw">this</span>.regionEnforcementCooldown.<span class="fn">get</span>(player.id) ?? -<span class="num">99</span>;
+    <span class="kw">if</span> (currentTick - lastTick &lt; <span class="num">5</span>) <span class="kw">return</span>; <span class="cm">// debounce teleports</span>
+
+    <span class="kw">this</span>.regionEnforcementCooldown.<span class="fn">set</span>(player.id, currentTick);
+    player.<span class="fn">teleport</span>(HOME_LOCATION.x, HOME_LOCATION.y, HOME_LOCATION.level);
+    <span class="cm">// services.chat.sendMessage(player, "You have not unlocked this region.");</span>
+}
+</code></pre>
+</section>
+
+<!-- PHASE 4 -->
+<section id="phase4">
+  <h2>6. Phase 4 — Client Map Graying (Out of Scope)</h2>
+
+  <p>Graying out locked regions on the minimap and world map requires sending the unlock state to the client and hooking into the map rendering. Since the world map widget is driven by CS2 scripts in the cache, this is a separate, larger task that is out of scope for the current region enforcement.</p>
+</section>
+
+<!-- ALWAYS ACCESSIBLE -->
+<section id="always-accessible">
+  <h2>7. Always-Accessible Zones</h2>
+
+  <p>Some areas are accessible globally, independent of Region IDs.</p>
+
+  <table class="region-table">
+    <thead>
+      <tr><th>Zone</th><th>Tile range</th><th>Why always accessible</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tutorial island</td>
+        <td>(3088, 3096) → (3100, 3112)</td>
+        <td>Leagues tutorial spawn — outside all league region bounds</td>
+      </tr>
+      <tr>
+        <td>Edgeville (home)</td>
+        <td>Misthalin — always unlocked</td>
+        <td>Fallback destination. No special exemption needed; covered by Misthalin (Area 1) being the default unlock</td>
+      </tr>
+      <tr>
+        <td>Instances</td>
+        <td><code>player.isInInstance() == true</code></td>
+        <td>Dynamic instances should not be blocked</td>
+      </tr>
+      <tr>
+        <td>Unmapped regions</td>
+        <td><code>areaId === 0</code></td>
+        <td>Safe default — don't punish players for missing map definitions</td>
+      </tr>
+    </tbody>
+  </table>
+
+<pre><code><span class="kw">export function</span> <span class="fn">isAlwaysAccessible</span>(x: <span class="tp">number</span>, y: <span class="tp">number</span>): <span class="tp">boolean</span> {
+    <span class="cm">// Tutorial island spawn (outside normal league region bounds)</span>
+    <span class="kw">if</span> (x &gt;= <span class="num">3088</span> && x &lt;= <span class="num">3100</span> && y &gt;= <span class="num">3096</span> && y &lt;= <span class="num">3112</span>) <span class="kw">return</span> <span class="kw">true</span>;
+    <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="cm">// Note: Edgeville is in Misthalin (always unlocked) — no exemption needed.</span>
+}
+</code></pre>
+</section>
+
+<!-- TESTING -->
+<section id="testing">
+  <h2>8. Wire Up &amp; Test</h2>
+
+  <h3>Bot test updates</h3>
+  <p>Update <span class="file-path">scripts/bot-login.ts</span> to test both pathfinding truncation and the fallback teleport:</p>
+<pre><code><span class="cm">// Walk to border of locked region, path should be truncated</span>
+<span class="kw">await</span> xrspsTest.<span class="fn">sendCommand</span>(<span class="str">"walk 2967 3379"</span>); 
+<span class="kw">await</span> <span class="fn">delay</span>(<span class="num">3000</span>); 
+<span class="cm">// Check that player stopped at the border tile rather than walking in</span>
+
+<span class="cm">// Force teleport to locked region, should bounce to Edgeville</span>
+<span class="kw">await</span> xrspsTest.<span class="fn">sendCommand</span>(<span class="str">"tele 2967 3379 0"</span>); 
+<span class="kw">await</span> <span class="fn">delay</span>(<span class="num">1200</span>);
+<span class="kw">const</span> tile = <span class="kw">await</span> xrspsTest.<span class="fn">getPlayerTile</span>();
+<span class="kw">if</span> (tile.x === <span class="num">3087</span> && tile.y === <span class="num">3492</span>) <span class="fn">log</span>(<span class="str">"PASS: kicked to Edgeville"</span>);
+</code></pre>
+</section>
+
+<!-- EDGE CASES -->
+<section id="edgecases">
+  <h2>9. Edge Cases to Handle</h2>
+
+  <div class="card">
+    <div class="card-title">✅ Edgeville as home — no special exemption needed</div>
+    <p>Edgeville sits inside Misthalin (Area 1), which is the region every player has unlocked by default. Unlike Ferox Enclave (which was inside the Wilderness), Edgeville passes the normal region check naturally — no entry in <code>isAlwaysAccessible</code> is required.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚠️ Agility Shortcuts &amp; Forced Movements</div>
+    <p>Agility shortcuts bypass <code>continueWalkToDestination()</code> pathfinding. If an agility shortcut connects an unlocked area to a locked area, the player will land in the locked area and immediately be scooped up by the <code>onPlayerTick</code> teleport fallback. This is the desired safe behavior.</p>
+  </div>
+</section>
+
+<!-- NEXT STEPS -->
+<section id="nextsteps">
+  <h2>10. Next Steps</h2>
+
+  <div class="card">
+    <div class="card-title">1. Generate the Region ID Map</div>
+    <p>We need to compile the list of OSRS Region IDs and map them to their respective League Area IDs. This can be done by cross-referencing an OSRS region dump with the Leagues V map boundaries.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Implement Path Truncation</div>
+    <p>Add the <code>filterPathSteps?()</code> hook to <code>server/src/game/gamemodes/GamemodeDefinition.ts</code>. Call it in <code>server/src/game/PlayerManager.ts</code> inside <code>continueWalkToDestination()</code>. Implement it in <code>LeaguesVGamemode</code>. Test walking to the edge of Misthalin (e.g., towards Falador or the Wilderness) to ensure the player correctly stops at the border.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">3. Implement Fallback Teleport</div>
+    <p>Update <code>server/gamemodes/leagues-v/index.ts</code> to implement the <code>enforceRegionAccess</code> check in <code>onPlayerTick</code>. Test teleporting into locked areas to ensure the player is safely sent back to Edgeville.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4. Run Automated Tests</div>
+    <p>Run the bot tests defined in <code>scripts/bot-login.ts</code> to verify both path truncation and fallback teleports are functioning simultaneously.</p>
+  </div>
+</section>
+
+<!-- FILES SUMMARY -->
+<section id="files">
+  <h2>11. Files Changed Summary</h2>
+
+  <table class="region-table">
+    <thead>
+      <tr><th>File</th><th>Change</th><th>What</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>server/gamemodes/leagues-v/leagueRegionMap.ts</code></td>
+        <td><span class="badge badge-new">NEW</span></td>
+        <td><code>LEAGUE_REGION_MAP</code> data, <code>getLeagueAreaIdForTile()</code>, <code>isAlwaysAccessible()</code></td>
+      </tr>
+      <tr>
+        <td><code>server/src/game/gamemodes/GamemodeDefinition.ts</code></td>
+        <td><span class="badge badge-edit">EDIT</span></td>
+        <td>Add optional <code>filterPathSteps?(player, steps)</code> hook to the interface</td>
+      </tr>
+      <tr>
+        <td><code>server/src/game/PlayerManager.ts</code></td>
+        <td><span class="badge badge-edit">EDIT</span></td>
+        <td>Call <code>this.gamemode.filterPathSteps?.()</code> after <code>findPathSteps()</code> in <code>continueWalkToDestination()</code></td>
+      </tr>
+      <tr>
+        <td><code>server/gamemodes/leagues-v/index.ts</code></td>
+        <td><span class="badge badge-edit">EDIT</span></td>
+        <td>Add <code>enforceRegionAccess()</code> fallback teleport to <code>onPlayerTick</code></td>
+      </tr>
+      <tr>
+        <td><code>tests/game/leagueRegionEnforcement.test.ts</code></td>
+        <td><span class="badge badge-new">NEW</span></td>
+        <td>Unit tests for 64x64 region lookups and fallback</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer style="margin-top:3rem; padding-top:1rem; border-top:1px solid var(--border); color:var(--muted); font-size:0.8rem;">
+  xrsps-typescript · Leagues V Region Enforcement Plan · Generated May 2026
+</footer>
+
+</body>
+</html>

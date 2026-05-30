@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leagues Gamemode — Gap Analysis & Roadmap</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #bc8cff;
+    --green: #2ea043;
+    --red: #f85149;
+    --yellow: #d29922;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --code-bg: #0d1117;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 2.2rem;
+    color: var(--text);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  header p {
+    color: var(--muted);
+    margin-top: 0.4rem;
+    font-size: 1rem;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-core { background: #1f2937; color: var(--accent); border: 1px solid var(--accent); }
+  .badge-missing { background: #3f1a1a; color: var(--red); border: 1px solid var(--red); }
+  .badge-progress { background: #3f3010; color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge-done { background: #1a3a1f; color: var(--green); border: 1px solid var(--green); }
+
+  h2 {
+    font-size: 1.4rem;
+    color: var(--accent2);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin: 1.5rem 0 0.8rem;
+  }
+
+  p { margin-bottom: 1rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.4rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: var(--muted);
+    transform: translateY(-2px);
+  }
+
+  .card-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .status-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .status-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .status-list li:last-child {
+    border-bottom: none;
+  }
+
+  .icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .yes { color: var(--green); }
+  .no { color: var(--red); }
+  .wip { color: var(--yellow); }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--code-bg);
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 4px;
+  }
+
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .toc h3 { margin-top: 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏆 Leagues Implementation Roadmap <span class="badge badge-core">OSRS Gap Analysis</span></h1>
+  <p>A comprehensive breakdown of mechanics required to match official OSRS Leagues.</p>
+</header>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#core-loop">Core Loop: Tasks & League Points</a></li>
+    <li><a href="#relics">Relic System & Passive Buffs</a></li>
+    <li><a href="#regions">Region Unlocks & Progression</a></li>
+    <li><a href="#multipliers">XP & Drop Multipliers</a></li>
+    <li><a href="#ironman">Economy & Ironman Constraints</a></li>
+    <li><a href="#items">League-Specific Mechanics & Items</a></li>
+    <li><a href="#next-steps">Recommended Next Plans</a></li>
+  </ol>
+</div>
+
+<!-- SECTION 1 -->
+<section id="core-loop">
+  <h2>1. Core Loop: Tasks & League Points (LP)</h2>
+  <p>The heartbeat of Leagues. Players perform actions to complete Tasks, which award League Points. LP unlocks Relic tiers and Regions.</p>
+  
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Task Definitions & Tracking <span class="icon no">❌</span></div>
+      <p>Missing a system to define, trigger, and track thousands of tasks.</p>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Event listeners for skilling, combat, quests, etc.</li>
+        <li><span class="icon no">❌</span> Task tiers (Easy, Medium, Hard, Elite, Master).</li>
+        <li><span class="icon no">❌</span> Task completion notifications & fireworks.</li>
+      </ul>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">League Point (LP) Economy <span class="icon no">❌</span></div>
+      <p>Missing the core point currency.</p>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> LP variable saved per player.</li>
+        <li><span class="icon no">❌</span> LP milestones triggering relic tier unlocks.</li>
+        <li><span class="icon no">❌</span> Task UI interface implementation (CS2/widgets).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section id="relics">
+  <h2>2. Relic System & Passive Buffs</h2>
+  <p>Game-breaking passive buffs unlocked through LP milestones.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Relic Selection UI <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Interface to choose 1 of 3 relics at specific tiers.</li>
+        <li><span class="icon no">❌</span> Server-side validation of relic choices.</li>
+        <li><span class="icon no">❌</span> Persistent storage of unlocked/selected relics.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Combat & Skilling Overrides <span class="icon no">❌</span></div>
+      <p>Requires deep engine hooks.</p>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> <strong>Endless Harvest:</strong> Auto-banking resources + double yield.</li>
+        <li><span class="icon no">❌</span> <strong>Trickster:</strong> Auto-pickpocketing, stacked clues.</li>
+        <li><span class="icon no">❌</span> <strong>Ruinous Powers / Combat:</strong> Attack speed modifiers (e.g. 2-tick weapons).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="regions">
+  <h2>3. Region Unlocks & Progression</h2>
+  <p>Players start restricted and unlock new map areas via tasks.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Region Interfaces & Logic <span class="icon wip">⚠️</span></div>
+      <ul class="status-list">
+        <li><span class="icon yes">✅</span> Widget for region selection (already prototyped).</li>
+        <li><span class="icon yes">✅</span> Data storage for unlocked regions.</li>
+        <li><span class="icon no">❌</span> Logic to spend Region Unlocks (earned via LP).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Map Enforcement <span class="icon wip">⚠️</span></div>
+      <ul class="status-list">
+        <li><span class="icon yes">✅</span> Design plan exists (<a href="./leagues-region-enforcement-plan.html" style="color:var(--accent)">leagues-region-enforcement-plan.html</a>).</li>
+        <li><span class="icon no">❌</span> Pathfinding truncation not yet coded.</li>
+        <li><span class="icon no">❌</span> Fallback teleport (Edgeville) not yet coded.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 -->
+<section id="multipliers">
+  <h2>4. XP & Drop Multipliers</h2>
+  <p>Leagues features massive progression boosts that scale as the player advances.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Dynamic XP Multipliers <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Base XP multiplier (e.g., 5x).</li>
+        <li><span class="icon no">❌</span> Tiered XP multipliers (scales up to 12x or 16x based on Relic Tier).</li>
+        <li><span class="icon no">❌</span> Minigame point multipliers (e.g., 5x Pest Control points).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Boosted Drop Rates <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Global drop rate multiplier (e.g., 2x to 5x for rare tables).</li>
+        <li><span class="icon no">❌</span> Clue scroll drop rate enhancements.</li>
+        <li><span class="icon no">❌</span> Clue step reductions (Leagues clues are usually only 2-3 steps).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5 -->
+<section id="ironman">
+  <h2>5. Economy & Ironman Constraints</h2>
+  <p>Leagues players exist in a vacuum separated from the main economy.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Ironman Enforcements <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Disable trading for League profiles.</li>
+        <li><span class="icon no">❌</span> Disable Grand Exchange access.</li>
+        <li><span class="icon no">❌</span> Restrict item pickup from other players/PvP.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Shop Alterations <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> Leagues-specific shop stocks (higher restock rates).</li>
+        <li><span class="icon no">❌</span> Flat shop pricing (prices don't change based on stock).</li>
+        <li><span class="icon no">❌</span> Separate instance of shop inventories for League vs Main game.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6 -->
+<section id="items">
+  <h2>6. League-Specific Mechanics & Items</h2>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Iconic Features <span class="icon no">❌</span></div>
+      <ul class="status-list">
+        <li><span class="icon no">❌</span> <strong>Last Recall:</strong> An item that stores coordinates of the last teleport and allows returning instantly.</li>
+        <li><span class="icon no">❌</span> <strong>Unlimited Run Energy:</strong> Globally applied to all League players.</li>
+        <li><span class="icon no">❌</span> <strong>The Sage / Tutor:</strong> NPC to claim League rewards, tools, and interface access.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7 -->
+<section id="next-steps">
+  <h2>7. Recommended Next Plans to Create</h2>
+  <p>To methodically tackle this massive gamemode, this document will serve as the <strong>Master Roadmap</strong>. We will create and link individual, bite-sized plans for each subsystem below. Let me know which one you want to tackle next!</p>
+
+  <ul>
+    <li><span class="icon yes">✅</span> <strong><a href="./leagues-region-enforcement-plan.html" style="color:var(--accent)">leagues-region-enforcement-plan.html</a>:</strong> Map boundaries, path truncation, and fallback teleports for locked regions.</li>
+    <li><span class="icon wip">⚠️</span> <strong>leagues-task-system-plan.html:</strong> Architecture for defining, triggering, and tracking thousands of tasks efficiently without lagging the server.</li>
+    <li><span class="icon wip">⚠️</span> <strong>leagues-relic-engine-plan.html:</strong> How to hook passive buffs (like 2-tick attack speeds or auto-banking) cleanly into the existing combat and skilling pipelines.</li>
+    <li><span class="icon wip">⚠️</span> <strong>leagues-xp-drops-plan.html:</strong> Designing the scaling multiplier system for XP and Loot.</li>
+  </ul>
+</section>
+
+</body>
+</html>
