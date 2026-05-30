@@ -14,6 +14,7 @@ import {
     sendInventoryUse,
     sendInventoryUseOn,
     sendNpcInteract,
+    sendPersistentVarcs,
     sendPlayerDesignConfirm,
     sendVarpTransmit,
     sendWidgetAction,
@@ -3098,8 +3099,12 @@ export class OsrsClient {
                 } catch {}
             });
             // Capture server-assigned ID as soon as handshake arrives
-            subscribeHandshake(({ id, name, appearance, chatIcons, chatPrefix }) => {
+            subscribeHandshake(({ id, name, appearance, chatIcons, chatPrefix, persistentVarcs }) => {
                 try {
+                    if (persistentVarcs) {
+                        this.varManager.replacePersistentVarcs(persistentVarcs);
+                    }
+                    this.syncPersistentVarcsToServer();
                     // Store the local player name for CS2 scripts (CHAT_PLAYERNAME)
                     if (name) {
                         this.localPlayerName = name;
@@ -3451,9 +3456,18 @@ export class OsrsClient {
         if (!this.varcsUnwrittenChanges || !this.varcsStorageKey || !this.varManager) {
             return;
         }
-        saveBrowserVarcs(this.varcsStorageKey, this.varManager.snapshotPersistentVarcs());
+        const state = this.varManager.snapshotPersistentVarcs();
+        saveBrowserVarcs(this.varcsStorageKey, state);
+        sendPersistentVarcs(state);
         this.varcsUnwrittenChanges = false;
         this.varcsLastWriteTimeMs = Date.now();
+    }
+
+    private syncPersistentVarcsToServer(): void {
+        if (!this.varManager) {
+            return;
+        }
+        sendPersistentVarcs(this.varManager.snapshotPersistentVarcs());
     }
 
     private tryWriteVarcs(): void {

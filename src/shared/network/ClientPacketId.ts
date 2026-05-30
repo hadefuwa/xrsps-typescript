@@ -88,6 +88,9 @@ export enum ClientPacketId {
 
     // Dialog
     RESUME_PAUSEBUTTON = 62, // Dialog continue (6 bytes)
+
+    // Client persistent settings/keybinds payload
+    PERSISTENT_VARCS = 105, // Variable-length account-backed persistent varcs
 }
 
 /**
@@ -130,6 +133,7 @@ export const CLIENT_PACKET_LENGTHS: Record<number, number> = {
     [ClientPacketId.OPOBJ4]: 7,
     [ClientPacketId.OPNPC1]: 3,
     [ClientPacketId.RESUME_PAUSEBUTTON]: 6,
+    [ClientPacketId.PERSISTENT_VARCS]: -2,
     [ClientPacketId.IF_BUTTON4]: 8,
     [ClientPacketId.OPPLAYER_U]: 11,
     [ClientPacketId.IF_BUTTON5]: 8,
