@@ -18,6 +18,12 @@ export function exportPersistentVars(player: PlayerState): PlayerPersistentVars 
     const varpData = player.varps.serialize();
     if (varpData.varps) snapshot.varps = varpData.varps;
     if (varpData.varbits) snapshot.varbits = varpData.varbits;
+    if (player.persistentVarcs) {
+        snapshot.persistentVarcs = {
+            ints: player.persistentVarcs.ints.map(([id, value]) => [id, value] as [number, number]),
+            strings: player.persistentVarcs.strings.map(([id, value]) => [id, value] as [number, string]),
+        };
+    }
     const gamemodeData = player.gamemode.serializePlayerState(player);
     if (gamemodeData && Object.keys(gamemodeData).length > 0) {
         snapshot.gamemodeData = gamemodeData;
@@ -106,6 +112,7 @@ export function applyPersistentVars(player: PlayerState, state?: PlayerPersisten
     player.gamemodeState.clear();
     if (!state) {
         player.varps.deserialize(undefined);
+        player.persistentVarcs = undefined;
         player.bank.getBankEntries();
         return;
     }
@@ -127,6 +134,12 @@ export function applyPersistentVars(player: PlayerState, state?: PlayerPersisten
         player.markAppearanceDirty();
     }
     player.varps.deserialize({ varps: state.varps, varbits: state.varbits });
+    player.persistentVarcs = state.persistentVarcs
+        ? {
+              ints: state.persistentVarcs.ints.map(([id, value]) => [id, value] as [number, number]),
+              strings: state.persistentVarcs.strings.map(([id, value]) => [id, value] as [number, string]),
+          }
+        : undefined;
     if (state.gamemodeData && Object.keys(state.gamemodeData).length > 0) {
         player.gamemode.deserializePlayerState(
             player,

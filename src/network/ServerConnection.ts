@@ -4,6 +4,7 @@ import { PlayerSyncContext } from "../client/sync/PlayerSyncContext";
 import type { PlayerSyncFrame } from "../client/sync/PlayerSyncTypes";
 import { PlayerUpdateDecoder } from "../client/sync/PlayerUpdateDecoder";
 import { SkillId } from "../rs/skill/skills";
+import type { PersistedVarcsState } from "../rs/config/vartype/VarManager";
 import type { ProjectileLaunch } from "../shared/projectiles/ProjectileLaunch";
 import {
     VARP_AREA_SOUNDS_VOLUME,
@@ -501,6 +502,7 @@ type ClientToServer =
               clientType?: number;
           };
       }
+    | { type: "persistent_varcs"; payload: PersistedVarcsState }
     | { type: "varp_transmit"; payload: { varpId: number; value: number } }
     | { type: "interact"; payload: { mode: "follow" | "trade"; targetId: number } }
     | { type: "interact_stop"; payload: {} }
@@ -567,7 +569,7 @@ type ClientToServer =
 const getEnv = (key: string): string | undefined =>
     typeof process !== "undefined" && process.env ? process.env[key] : undefined;
 
-const DEFAULT_URL = getEnv("REACT_APP_SERVER_URL") ?? "ws://localhost:43594";
+const DEFAULT_URL = getEnv("REACT_APP_SERVER_URL") ?? `ws://${window.location.hostname}:43594`;
 const LOGIN_CONNECT_RETRY_DELAY_MS = 1000;
 
 let socket: WebSocket | null = null;
@@ -800,6 +802,9 @@ let lastHandshake:
           id: number;
           appearance?: { gender: number; colors?: number[]; kits?: number[]; equip?: number[] };
           name?: string;
+          chatIcons?: number[];
+          chatPrefix?: string;
+          persistentVarcs?: PersistedVarcsState;
       }
     | undefined;
 let lastInventorySnapshot: InventorySlotMessage[] | undefined;
@@ -2605,6 +2610,17 @@ export function sendVarpTransmit(varpId: number, value: number): void {
     send({ type: "varp_transmit", payload: { varpId: varpId | 0, value: value | 0 } } as any);
 }
 
+export function sendPersistentVarcs(state: PersistedVarcsState): void {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    send({
+        type: "persistent_varcs",
+        payload: {
+            ints: state.ints.map(([id, value]) => [id | 0, value | 0] as [number, number]),
+            strings: state.strings.map(([id, value]) => [id | 0, String(value)] as [number, string]),
+        },
+    } as any);
+}
+
 export function sendBankDepositInventory(tab?: number): void {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     const payload: { tab?: number } = {};
@@ -3431,6 +3447,7 @@ export function subscribeHandshake(
         name?: string;
         chatIcons?: number[];
         chatPrefix?: string;
+        persistentVarcs?: PersistedVarcsState;
     }) => void,
 ): () => void {
     handshakeListeners.add(cb);

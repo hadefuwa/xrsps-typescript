@@ -78,6 +78,7 @@ export const enum ClientPacketId {
     RESUME_NAMEDIALOG = 193,
     RESUME_STRINGDIALOG = 194,
     MAP_EDIT = 195,
+    PERSISTENT_VARCS = 196,
 }
 
 /**
@@ -129,6 +130,7 @@ export const CLIENT_PACKET_LENGTHS: Record<ClientPacketId, number> = {
     [ClientPacketId.RESUME_NAMEDIALOG]: -1, // value(string)
     [ClientPacketId.RESUME_STRINGDIALOG]: -1, // value(string)
     [ClientPacketId.MAP_EDIT]: -1, // action(1) + tile(4) + level/type/rotation/id(var)
+    [ClientPacketId.PERSISTENT_VARCS]: -2,
 
     [ClientPacketId.DEBUG]: -2,
 };

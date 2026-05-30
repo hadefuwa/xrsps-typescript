@@ -578,9 +578,34 @@ export function decodeServerPacket(data: Uint8Array | ArrayBuffer): DecodedServe
                     chatPrefix = prefix || undefined;
                 }
             }
+            let persistentVarcs:
+                | { ints: Array<[number, number]>; strings: Array<[number, string]> }
+                | undefined;
+            if (reader.remaining > 0) {
+                const intsCount = reader.readShort() | 0;
+                const ints: Array<[number, number]> = [];
+                for (let i = 0; i < intsCount && reader.remaining >= 6; i++) {
+                    ints.push([reader.readShort() | 0, reader.readInt() | 0]);
+                }
+                const stringsCount = reader.remaining > 0 ? reader.readShort() | 0 : 0;
+                const strings: Array<[number, string]> = [];
+                for (let i = 0; i < stringsCount && reader.remaining >= 2; i++) {
+                    strings.push([reader.readShort() | 0, reader.readString()]);
+                }
+                if (ints.length > 0 || strings.length > 0) {
+                    persistentVarcs = { ints, strings };
+                }
+            }
             return {
                 type: "handshake",
-                payload: { id, name: name || undefined, appearance, chatIcons, chatPrefix },
+                payload: {
+                    id,
+                    name: name || undefined,
+                    appearance,
+                    chatIcons,
+                    chatPrefix,
+                    persistentVarcs,
+                },
             };
         }
 

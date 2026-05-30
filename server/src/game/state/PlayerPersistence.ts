@@ -209,7 +209,42 @@ function sanitizeCollectionLogSnapshot(
     return result;
 }
 
-function mergeStates(
+function sanitizePersistentVarcsSnapshot(
+    data: PlayerPersistentVars["persistentVarcs"] | undefined,
+): PlayerPersistentVars["persistentVarcs"] | undefined {
+    if (!data) return undefined;
+
+    const ints: Array<[number, number]> = [];
+    const strings: Array<[number, string]> = [];
+
+    if (Array.isArray(data.ints)) {
+        for (const entry of data.ints) {
+            if (!Array.isArray(entry) || entry.length !== 2) continue;
+            const id = Number(entry[0]);
+            const value = Number(entry[1]);
+            if (!Number.isInteger(id) || !Number.isFinite(value)) continue;
+            ints.push([id | 0, value | 0]);
+        }
+    }
+
+    if (Array.isArray(data.strings)) {
+        for (const entry of data.strings) {
+            if (!Array.isArray(entry) || entry.length !== 2) continue;
+            const id = Number(entry[0]);
+            const value = entry[1];
+            if (!Number.isInteger(id) || typeof value !== "string") continue;
+            strings.push([id | 0, value]);
+        }
+    }
+
+    if (ints.length === 0 && strings.length === 0) {
+        return undefined;
+    }
+
+    return { ints, strings };
+}
+
+export function mergeStates(
     defaults?: PlayerPersistentVars,
     overrides?: PlayerPersistentVars,
 ): PlayerPersistentVars | undefined {
@@ -243,6 +278,12 @@ function mergeStates(
     const result: PlayerPersistentVars = {};
     if (Object.keys(varps).length > 0) result.varps = varps;
     if (Object.keys(varbits).length > 0) result.varbits = varbits;
+    const persistentVarcs = sanitizePersistentVarcsSnapshot(
+        overrides?.persistentVarcs ?? defaults?.persistentVarcs,
+    );
+    if (persistentVarcs) {
+        result.persistentVarcs = persistentVarcs;
+    }
     if (gamemodeData && Object.keys(gamemodeData).length > 0) {
         result.gamemodeData = gamemodeData;
     }

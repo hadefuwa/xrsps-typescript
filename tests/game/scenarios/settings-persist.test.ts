@@ -6,6 +6,9 @@
  */
 
 import { PlayerVarpState } from "../../../server/src/game/state/PlayerVarpState";
+import { mergeStates } from "../../../server/src/game/state/PlayerPersistence";
+import { decodeClientPacket } from "../../../server/src/network/packet/ClientBinaryDecoder";
+import { encodeClientMessage } from "../../../src/network/packet/ClientBinaryEncoder";
 import { assert, assertEqual, describe, it } from "../framework";
 
 // Simulate the fixed login varbit application logic
@@ -81,6 +84,42 @@ export function runSettingsPersistTests(): void {
 
             assertEqual(varps.getVarbitValue(XP_DROPS_VARBIT), 0, "XP drops still off");
             assertEqual(varps.getVarbitValue(MUSIC_VARBIT), 0, "Music still off");
+        });
+
+        it("fixed: persistent varcs are preserved in player persistence snapshots", () => {
+            const merged = mergeStates(undefined, {
+                persistentVarcs: {
+                    ints: [[101, 1], [202, 99]],
+                    strings: [[303, "Shift-click to drop"]],
+                },
+            });
+
+            assertEqual(merged?.persistentVarcs?.ints.length, 2, "int varcs should persist");
+            assertEqual(
+                merged?.persistentVarcs?.strings[0]?.[1],
+                "Shift-click to drop",
+                "string varcs should persist",
+            );
+        });
+
+        it("fixed: persistent varcs packet round-trips between client and server", () => {
+            const encoded = encodeClientMessage({
+                type: "persistent_varcs",
+                payload: {
+                    ints: [[81, 1], [170, 11]],
+                    strings: [[335, "bank"]],
+                },
+            });
+            const decoded = decodeClientPacket(encoded);
+            assertEqual(decoded?.type, "persistent_varcs", "packet type should decode");
+            assertEqual(
+                JSON.stringify(decoded?.payload),
+                JSON.stringify({
+                    ints: [[81, 1], [170, 11]],
+                    strings: [[335, "bank"]],
+                }),
+                "persistent varcs payload should round-trip intact",
+            );
         });
     });
 }

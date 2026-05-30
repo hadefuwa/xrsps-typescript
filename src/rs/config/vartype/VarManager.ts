@@ -175,6 +175,29 @@ export class VarManager {
         return { ints, strings };
     }
 
+    replacePersistentVarcs(state?: PersistedVarcsState): void {
+        if (this.persistentVarcs.length === 0) {
+            this.varcInts.clear();
+            this.varcStrings.clear();
+            this.restorePersistentVarcs(state);
+            return;
+        }
+
+        for (const id of Array.from(this.varcInts.keys())) {
+            if (this.isPersistentVarc(id)) {
+                this.varcInts.delete(id);
+            }
+        }
+
+        for (const id of Array.from(this.varcStrings.keys())) {
+            if (this.isPersistentVarc(id)) {
+                this.varcStrings.delete(id);
+            }
+        }
+
+        this.restorePersistentVarcs(state);
+    }
+
     clearTransientVarcs(): void {
         if (this.persistentVarcs.length === 0) {
             this.varcInts.clear();

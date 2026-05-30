@@ -311,6 +311,7 @@ export class LoginHandshakeService {
                                 name: handshakeName,
                                 appearance: handshakeAppearance as unknown as import("./messages").Appearance,
                                 chatIcons: handshakeChatIcons,
+                                persistentVarcs: p.persistentVarcs,
                             },
                         }),
                         "handshake_ack",

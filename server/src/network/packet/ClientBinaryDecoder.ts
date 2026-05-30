@@ -618,6 +618,23 @@ export function decodeClientPacket(data: Uint8Array | ArrayBuffer): DecodedClien
                 },
             };
 
+        case ClientPacketId.PERSISTENT_VARCS: {
+            const intsCount = reader.readShort();
+            const ints: Array<[number, number]> = [];
+            for (let i = 0; i < intsCount && reader.remaining >= 6; i++) {
+                ints.push([reader.readShort(), reader.readInt()]);
+            }
+            const stringsCount = reader.readShort();
+            const strings: Array<[number, string]> = [];
+            for (let i = 0; i < stringsCount && reader.remaining >= 2; i++) {
+                strings.push([reader.readShort(), reader.readString()]);
+            }
+            return {
+                type: "persistent_varcs",
+                payload: { ints, strings },
+            };
+        }
+
         case ClientPacketId.DEBUG: {
             const jsonStr = reader.readString();
             const payload: Extract<RoutedMessage, { type: "debug" }>["payload"] =

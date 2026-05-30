@@ -4,6 +4,7 @@ import { createLogoutHandler } from "./logoutHandler";
 import { createIfCloseHandler } from "./ifCloseHandler";
 import { createWidgetHandler } from "./widgetHandler";
 import { createVarpTransmitHandler } from "./varpTransmitHandler";
+import { createPersistentVarcsHandler } from "./persistentVarcsHandler";
 import { type BinaryHandlerExtServices, registerBinaryHandlers } from "./binaryMessageHandlers";
 import { registerInteractHandlers } from "./interactHandlers";
 import { registerDialogHandlers } from "./dialogHandlers";
@@ -42,6 +43,7 @@ export function registerAllHandlers(
     router.register("if_close", createIfCloseHandler(services));
     router.register("widget", createWidgetHandler(services));
     router.register("varp_transmit", createVarpTransmitHandler(services));
+    router.register("persistent_varcs", createPersistentVarcsHandler(services));
 
     // Extracted from processBinaryMessage switch
     registerBinaryHandlers(router, services);

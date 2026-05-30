@@ -6,6 +6,7 @@ import {
     SKILL_IDS,
     SkillId,
 } from "../../../src/rs/skill/skills";
+import type { PersistedVarcsState } from "../../../src/rs/config/vartype/VarManager";
 import { logger } from "../utils/logger";
 import { DisplayMode, PlayerWidgetManager } from "../widgets/WidgetManager";
 import { Actor, RUN_ENERGY_MAX, Tile } from "./actor";
@@ -173,6 +174,7 @@ const COMBAT_STYLE_MAX_SLOT_BY_CATEGORY: Record<number, number> = {
 export interface PlayerPersistentVars {
     varps?: Record<number, number>;
     varbits?: Record<number, number>;
+    persistentVarcs?: PersistedVarcsState;
     gamemodeData?: Record<string, unknown>;
     /** Server-only onboarding progression (project-specific). */
     accountStage?: number;
@@ -278,6 +280,8 @@ export class PlayerState extends Actor {
     readonly aggression = new PlayerAggressionTracker();
     /** Composed varp/varbit storage */
     readonly varps = new PlayerVarpState();
+    /** Account-backed client persistent varcs (settings/keybinds/etc.) */
+    persistentVarcs?: PersistedVarcsState;
     /** Composed special attack energy state */
     readonly specEnergy = new PlayerSpecialEnergyState(this.combat);
     /** Composed equipment charge tracking & queries */

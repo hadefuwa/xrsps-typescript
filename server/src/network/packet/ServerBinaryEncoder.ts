@@ -8,6 +8,7 @@ import {
     SERVER_PACKET_LENGTHS,
     ServerPacketId,
 } from "../../../../src/shared/packets/ServerPacketId";
+import type { PersistedVarcsState } from "../../../../src/rs/config/vartype/VarManager";
 import {
     INSTANCE_CHUNK_COUNT,
     PLANE_COUNT,
@@ -226,6 +227,7 @@ export class ServerBinaryEncoder {
         appearance?: { gender?: number; colors?: number[]; kits?: number[]; equip?: number[] },
         chatIcons?: number[],
         chatPrefix?: string,
+        persistentVarcs?: PersistedVarcsState,
     ): Uint8Array {
         this.buffer.reset();
         this.buffer.writeInt(id);
@@ -256,6 +258,20 @@ export class ServerBinaryEncoder {
             this.buffer.writeByte(icon & 0xff);
         }
         this.buffer.writeString(chatPrefix ?? "");
+        const intEntries = Array.isArray(persistentVarcs?.ints) ? persistentVarcs.ints : [];
+        this.buffer.writeShort(intEntries.length);
+        for (const [varcId, value] of intEntries) {
+            this.buffer.writeShort(varcId);
+            this.buffer.writeInt(value);
+        }
+        const stringEntries = Array.isArray(persistentVarcs?.strings)
+            ? persistentVarcs.strings
+            : [];
+        this.buffer.writeShort(stringEntries.length);
+        for (const [varcId, value] of stringEntries) {
+            this.buffer.writeShort(varcId);
+            this.buffer.writeString(value);
+        }
         return this.buffer.toPacket(ServerPacketId.HANDSHAKE);
     }
 

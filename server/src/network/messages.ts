@@ -1,4 +1,5 @@
 import type { ProjectileLaunch } from "../../../src/shared/projectiles/ProjectileLaunch";
+import type { PersistedVarcsState } from "../../../src/rs/config/vartype/VarManager";
 import { logger } from "../utils/logger";
 import type { WidgetAction } from "../widgets/WidgetManager";
 import type { RoutedMessage } from "./MessageRouter";
@@ -422,6 +423,7 @@ export type ServerToClient =
               name?: string;
               chatIcons?: number[];
               chatPrefix?: string;
+              persistentVarcs?: PersistedVarcsState;
           };
       }
     | { type: "inventory"; payload: InventoryServerUpdate }
@@ -556,6 +558,7 @@ export type ClientToServer =
           type: "handshake";
           payload: { name?: string; appearance?: Appearance; clientType?: number };
       }
+    | { type: "persistent_varcs"; payload: PersistedVarcsState }
     | { type: "varp_transmit"; payload: { varpId: number; value: number } }
     | { type: "spell_cast_npc"; payload: SpellCastNpcPayload }
     | { type: "spell_cast_player"; payload: SpellCastPlayerPayload }
@@ -760,6 +763,7 @@ function encodeMessageToBinaryDirect(msg: ServerToClient): Uint8Array {
                 payload.appearance,
                 payload.chatIcons,
                 payload.chatPrefix,
+                payload.persistentVarcs,
             );
 
         case "varp":

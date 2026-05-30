@@ -5,6 +5,7 @@
  * All encoding methods match OSRS buffer patterns.
  */
 import { CLIENT_PACKET_LENGTHS, ClientPacketId } from "../../shared/packets/ClientPacketId";
+import type { PersistedVarcsState } from "../../rs/config/vartype/VarManager";
 
 /**
  * Binary packet buffer for client encoding
@@ -493,6 +494,23 @@ export class ClientBinaryEncoder {
         return this.buffer.toPacket(ClientPacketId.VARP_TRANSMIT);
     }
 
+    encodePersistentVarcs(state: PersistedVarcsState): Uint8Array {
+        this.buffer.reset();
+        const intEntries = Array.isArray(state.ints) ? state.ints : [];
+        this.buffer.writeShort(intEntries.length);
+        for (const [varcId, value] of intEntries) {
+            this.buffer.writeShort(varcId);
+            this.buffer.writeInt(value);
+        }
+        const stringEntries = Array.isArray(state.strings) ? state.strings : [];
+        this.buffer.writeShort(stringEntries.length);
+        for (const [varcId, value] of stringEntries) {
+            this.buffer.writeShort(varcId);
+            this.buffer.writeString(value);
+        }
+        return this.buffer.toPacket(ClientPacketId.PERSISTENT_VARCS);
+    }
+
     // ========================================
     // DEBUG
     // ========================================
@@ -628,6 +646,9 @@ export function encodeClientMessage(msg: { type: string; payload: any }): Uint8A
 
         case "varp_transmit":
             return clientEncoder.encodeVarpTransmit(payload.varpId, payload.value);
+
+        case "persistent_varcs":
+            return clientEncoder.encodePersistentVarcs(payload);
 
         case "resume_countdialog":
             return clientEncoder.encodeResumeCountdialog(payload.amount);
